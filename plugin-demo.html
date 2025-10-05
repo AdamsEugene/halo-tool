@@ -242,24 +242,47 @@
 
       <div class="grid">
         <div>
-          <!-- NEW: Tool Name at the top -->
+          <!-- NEW: Tool Name and Type at the top -->
           <div class="input-group">
             <label>Tool Name:</label>
-            <input 
-              type="text" 
-              id="tool-name" 
-              placeholder="Enter tool name (e.g., 'GetUserData', 'FetchPosts')" 
+            <input
+              type="text"
+              id="tool-name"
+              placeholder="Enter tool name (e.g., 'GetUserData', 'FetchPosts')"
+              title="Tool Name"
               style="
-                width: 100%; 
-                padding: 12px; 
-                border: 2px solid #007bff; 
-                border-radius: 6px; 
-                font-weight: 600; 
-                font-size: 14px; 
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #007bff;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 14px;
                 background: #f8f9ff;
                 margin-bottom: 8px;
               "
             />
+          </div>
+
+          <div class="input-group">
+            <label>Tool Type:</label>
+            <select
+              id="tool-type"
+              title="Tool Type"
+              style="
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #007bff;
+                border-radius: 6px;
+                font-weight: 600;
+                font-size: 14px;
+                background: #f8f9ff;
+                margin-bottom: 8px;
+              "
+            >
+              <option value="server">🌐 Server Tool (API Calls, HTTP Requests)</option>
+              <option value="client">🖥️ Client Tool (UI Actions, DOM Manipulation)</option>
+              <option value="system">⚙️ System Tool (State Operations, Transformations)</option>
+            </select>
           </div>
 
           <!-- URL and Method on same line -->
@@ -802,28 +825,44 @@
           margin-bottom: 20px;
         "
       >
-         <h4 style="margin: 0 0 8px 0; color: #1976d2">📋 How to Create & Test Tools:</h4>
-         <ol style="margin: 0; padding-left: 20px; color: #1565c0; font-size: 14px">
-           <li><strong>Name:</strong> Enter a tool name in "Advanced HTTP Requests" section above</li>
-           <li><strong>Configure:</strong> Set up your HTTP request (URL, method, headers, auth, etc.)</li>
-           <li><strong>Save:</strong> Click "💾 Save Tool & Clear" to save and prepare for next tool</li>
-           <li><strong>Test:</strong> Use the ▶ button next to your saved tool OR use lifecycle event buttons</li>
-           <li><strong>Manage:</strong> Edit (📝), Execute (▶), or Delete (×) your saved tools</li>
-         </ol>
+        <h4 style="margin: 0 0 8px 0; color: #1976d2">📋 How to Create & Test Tools:</h4>
+        <ol style="margin: 0; padding-left: 20px; color: #1565c0; font-size: 14px">
+          <li>
+            <strong>Name:</strong> Enter a tool name in "Advanced HTTP Requests" section above
+          </li>
+          <li>
+            <strong>Configure:</strong> Set up your HTTP request (URL, method, headers, auth, etc.)
+          </li>
+          <li>
+            <strong>Save:</strong> Click "💾 Save Tool & Clear" to save and prepare for next tool
+          </li>
+          <li>
+            <strong>Test:</strong> Use the ▶ button next to your saved tool OR use lifecycle event
+            buttons
+          </li>
+          <li><strong>Manage:</strong> Edit (📝), Execute (▶), or Delete (×) your saved tools</li>
+        </ol>
       </div>
 
-       <div class="grid">
-         <div>
-           <div class="input-group">
-             <label>Quick Actions:</label>
-             <button
-               class="btn"
-               onclick="createQuickTestTool()"
-               style="width: 100%; margin-bottom: 15px; background: #17a2b8; color: white; padding: 10px; font-size: 13px"
-             >
-               ⚡ Create Quick Test Tool
-             </button>
-           </div>
+      <div class="grid">
+        <div>
+          <div class="input-group">
+            <label>Quick Actions:</label>
+            <button
+              class="btn"
+              onclick="createQuickTestTool()"
+              style="
+                width: 100%;
+                margin-bottom: 15px;
+                background: #17a2b8;
+                color: white;
+                padding: 10px;
+                font-size: 13px;
+              "
+            >
+              ⚡ Create Quick Test Tool
+            </button>
+          </div>
 
           <div class="input-group">
             <label>Simulate Workflow Events:</label>
@@ -874,30 +913,42 @@
           </div>
         </div>
 
-         <div>
-           <div class="input-group">
-             <label>Registered Tools <span style="color: #6c757d; font-size: 12px;">(saved HTTP request configurations)</span>:</label>
-             <div
-               id="registered-tools-list"
-               style="
-                 max-height: 250px;
-                 overflow-y: auto;
-                 border: 2px solid #28a745;
-                 border-radius: 6px;
-                 padding: 12px;
-                 background: #f8fff8;
-               "
-             >
-               <!-- Tools will be populated here -->
-             </div>
-             <button
-               class="btn"
-               onclick="clearAllTools()"
-               style="width: 100%; margin-top: 8px; background: #dc3545; color: white; font-size: 12px; padding: 8px"
-             >
-               🗑️ Clear All Tools
-             </button>
-           </div>
+        <div>
+          <div class="input-group">
+            <label
+              >Registered Tools
+              <span style="color: #6c757d; font-size: 12px"
+                >(saved HTTP request configurations)</span
+              >:</label
+            >
+            <div
+              id="registered-tools-list"
+              style="
+                max-height: 250px;
+                overflow-y: auto;
+                border: 2px solid #28a745;
+                border-radius: 6px;
+                padding: 12px;
+                background: #f8fff8;
+              "
+            >
+              <!-- Tools will be populated here -->
+            </div>
+            <button
+              class="btn"
+              onclick="clearAllTools()"
+              style="
+                width: 100%;
+                margin-top: 8px;
+                background: #dc3545;
+                color: white;
+                font-size: 12px;
+                padding: 8px;
+              "
+            >
+              🗑️ Clear All Tools
+            </button>
+          </div>
 
           <div class="input-group">
             <label>Active Triggers:</label>
@@ -1547,7 +1598,9 @@ State will appear here...</pre
         updateActiveTriggersList();
 
         // Log success
-        logToWorkflowOutput(`✅ Tool '${toolName}' created successfully with ID: ${toolId}`);
+        logToWorkflowOutput(
+          `✅ Tool '${toolName}' (${toolType}) created successfully with ID: ${toolId}`
+        );
         if (lifecycleTrigger) {
           logToWorkflowOutput(`🔗 Tool registered for trigger: ${lifecycleTrigger}`);
         }
@@ -1557,28 +1610,28 @@ State will appear here...</pre
           );
         }
 
-       // Clear tool name for next creation
-       document.getElementById('tool-name').value = '';
-     }
+        // Clear tool name for next creation
+        document.getElementById('tool-name').value = '';
+      }
 
-     // NEW: Save tool and clear form for next tool
-     function saveToolAndClear() {
-       const toolName = document.getElementById('tool-name').value.trim();
-       
-       if (!toolName) {
-         alert('Please enter a tool name before saving');
-         document.getElementById('tool-name').focus();
-         return;
-       }
-       
-       // Save the tool using existing function
-       createToolFromForm();
-       
-       // Clear the entire form for next tool
-       clearRequestForm();
-       
-       logToWorkflowOutput(`🎯 Tool saved! Form cleared for next tool creation.`);
-     }
+      // NEW: Save tool and clear form for next tool
+      function saveToolAndClear() {
+        const toolName = document.getElementById('tool-name').value.trim();
+
+        if (!toolName) {
+          alert('Please enter a tool name before saving');
+          document.getElementById('tool-name').focus();
+          return;
+        }
+
+        // Save the tool using existing function
+        createToolFromForm();
+
+        // Clear the entire form for next tool
+        clearRequestForm();
+
+        logToWorkflowOutput(`🎯 Tool saved! Form cleared for next tool creation.`);
+      }
 
       // NEW: Create a quick test tool for demonstration
       function createQuickTestTool() {
@@ -1609,31 +1662,33 @@ State will appear here...</pre
         );
       }
 
-       function updateRegisteredToolsList() {
-         const container = document.getElementById('registered-tools-list');
+      function updateRegisteredToolsList() {
+        const container = document.getElementById('registered-tools-list');
 
-         if (registeredTools.size === 0) {
-           container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px; font-style: italic;">No tools saved yet<br><small>Configure an HTTP request above and click "💾 Save as New Tool"</small></div>';
-           return;
-         }
+        if (registeredTools.size === 0) {
+          container.innerHTML =
+            '<div style="text-align: center; color: #6c757d; padding: 20px; font-style: italic;">No tools saved yet<br><small>Configure an HTTP request above and click "💾 Save as New Tool"</small></div>';
+          return;
+        }
 
-         let html = '';
-         registeredTools.forEach((tool, toolId) => {
-           const typeIcon = tool.type === 'server' ? '🌐' : tool.type === 'client' ? '🖥️' : '⚙️';
-           const triggerBadge = tool.trigger
-             ? `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.trigger}</span>`
-             : '';
-           const actionsBadge =
-             tool.responseActions.length > 0
-               ? `<span style="background: #fff3e0; color: #f57c00; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.responseActions.length} actions</span>`
-               : '';
+        let html = '';
+        registeredTools.forEach((tool, toolId) => {
+          const typeIcon = tool.type === 'server' ? '🌐' : tool.type === 'client' ? '🖥️' : '⚙️';
+          const triggerBadge = tool.trigger
+            ? `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.trigger}</span>`
+            : '';
+          const actionsBadge =
+            tool.responseActions.length > 0
+              ? `<span style="background: #fff3e0; color: #f57c00; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.responseActions.length} actions</span>`
+              : '';
 
-           // Show URL and method for server tools
-           const configInfo = tool.type === 'server' 
-             ? `<div style="font-size: 11px; color: #6c757d; margin-top: 4px; font-family: monospace;">${tool.config.method} ${tool.config.url}</div>`
-             : '';
+          // Show URL and method for server tools
+          const configInfo =
+            tool.type === 'server'
+              ? `<div style="font-size: 11px; color: #6c757d; margin-top: 4px; font-family: monospace;">${tool.config.method} ${tool.config.url}</div>`
+              : '';
 
-           html += `
+          html += `
                      <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border: 1px solid #e9ecef; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                          <div style="display: flex; justify-content: space-between; align-items: center;">
                              <div style="flex: 1;">
@@ -1651,83 +1706,87 @@ State will appear here...</pre
                          </div>
                      </div>
                  `;
-         });
+        });
 
-         container.innerHTML = html;
-       }
+        container.innerHTML = html;
+      }
 
-       // NEW: Clear all registered tools
-       function clearAllTools() {
-         if (registeredTools.size === 0) {
-           logToWorkflowOutput('ℹ️ No tools to clear');
-           return;
-         }
-         
-         const count = registeredTools.size;
-         registeredTools.clear();
-         triggerHandlers.clear();
-         updateRegisteredToolsList();
-         updateActiveTriggersList();
-         logToWorkflowOutput(`🗑️ Cleared ${count} registered tool(s)`);
-       }
+      // NEW: Clear all registered tools
+      function clearAllTools() {
+        if (registeredTools.size === 0) {
+          logToWorkflowOutput('ℹ️ No tools to clear');
+          return;
+        }
 
-       // NEW: Delete a specific tool
-       function deleteRegisteredTool(toolId) {
-         const tool = registeredTools.get(toolId);
-         if (!tool) return;
-         
-         // Remove from registered tools
-         registeredTools.delete(toolId);
-         
-         // Remove from trigger handlers
-         if (tool.trigger) {
-           const handlers = triggerHandlers.get(tool.trigger);
-           if (handlers) {
-             const index = handlers.indexOf(toolId);
-             if (index > -1) {
-               handlers.splice(index, 1);
-               if (handlers.length === 0) {
-                 triggerHandlers.delete(tool.trigger);
-               }
-             }
-           }
-         }
-         
-         updateRegisteredToolsList();
-         updateActiveTriggersList();
-         logToWorkflowOutput(`🗑️ Deleted tool: ${tool.name}`);
-       }
+        const count = registeredTools.size;
+        registeredTools.clear();
+        triggerHandlers.clear();
+        updateRegisteredToolsList();
+        updateActiveTriggersList();
+        logToWorkflowOutput(`🗑️ Cleared ${count} registered tool(s)`);
+      }
 
-       // NEW: Load a tool's configuration back to the form
-       function loadToolToForm(toolId) {
-         const tool = registeredTools.get(toolId);
-         if (!tool) return;
-         
-         // Load the tool's configuration back to the form
-         document.getElementById('http-url').value = tool.config.url || '';
-         document.getElementById('http-method').value = tool.config.method || 'GET';
-         document.getElementById('http-headers').value = tool.config.headers ? JSON.stringify(tool.config.headers, null, 2) : '';
-         document.getElementById('http-body').value = tool.config.body ? JSON.stringify(tool.config.body, null, 2) : '';
-         document.getElementById('lifecycle-trigger').value = tool.trigger || '';
-         document.getElementById('state-save-path').value = tool.config.statePath || '';
-         
-         // Load field mappings
-         if (tool.config.fieldMappings) {
-           setMappingsInUI(tool.config.fieldMappings);
-         } else {
-           clearAllMappings();
-         }
-         
-         // Load response actions
-         clearAllResponseActions();
-         if (tool.responseActions && tool.responseActions.length > 0) {
-           tool.responseActions.forEach(action => {
-             addResponseActionWithValues(action.type, action.details);
-           });
-         }
-         
-         logToWorkflowOutput(`📝 Loaded tool configuration: ${tool.name}`);
-       }
+      // NEW: Delete a specific tool
+      function deleteRegisteredTool(toolId) {
+        const tool = registeredTools.get(toolId);
+        if (!tool) return;
+
+        // Remove from registered tools
+        registeredTools.delete(toolId);
+
+        // Remove from trigger handlers
+        if (tool.trigger) {
+          const handlers = triggerHandlers.get(tool.trigger);
+          if (handlers) {
+            const index = handlers.indexOf(toolId);
+            if (index > -1) {
+              handlers.splice(index, 1);
+              if (handlers.length === 0) {
+                triggerHandlers.delete(tool.trigger);
+              }
+            }
+          }
+        }
+
+        updateRegisteredToolsList();
+        updateActiveTriggersList();
+        logToWorkflowOutput(`🗑️ Deleted tool: ${tool.name}`);
+      }
+
+      // NEW: Load a tool's configuration back to the form
+      function loadToolToForm(toolId) {
+        const tool = registeredTools.get(toolId);
+        if (!tool) return;
+
+        // Load the tool's configuration back to the form
+        document.getElementById('http-url').value = tool.config.url || '';
+        document.getElementById('http-method').value = tool.config.method || 'GET';
+        document.getElementById('http-headers').value = tool.config.headers
+          ? JSON.stringify(tool.config.headers, null, 2)
+          : '';
+        document.getElementById('http-body').value = tool.config.body
+          ? JSON.stringify(tool.config.body, null, 2)
+          : '';
+        document.getElementById('lifecycle-trigger').value = tool.trigger || '';
+        document.getElementById('state-save-path').value = tool.config.statePath || '';
+
+        // Load field mappings
+        if (tool.config.fieldMappings) {
+          setMappingsInUI(tool.config.fieldMappings);
+        } else {
+          clearAllMappings();
+        }
+
+        // Load response actions
+        clearAllResponseActions();
+        if (tool.responseActions && tool.responseActions.length > 0) {
+          tool.responseActions.forEach(action => {
+            addResponseActionWithValues(action.type, action.details);
+          });
+        }
+
+        logToWorkflowOutput(`📝 Loaded tool configuration: ${tool.name}`);
+      }
 
       function updateActiveTriggersList() {
         const container = document.getElementById('active-triggers-list');
@@ -2075,6 +2134,7 @@ State will appear here...</pre
 
       function clearRequestForm() {
         document.getElementById('tool-name').value = '';
+        document.getElementById('tool-type').value = 'server'; // Reset to default
         document.getElementById('http-url').value = '';
         document.getElementById('http-method').value = 'GET';
         document.getElementById('http-headers').value = '';
@@ -2093,7 +2153,7 @@ State will appear here...</pre
 
         const output = document.getElementById('http-output');
         output.innerHTML = 'Form cleared - ready for new tool configuration...';
-        
+
         logToWorkflowOutput('🧹 Form cleared - ready for new tool configuration');
       }
 
