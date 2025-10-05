@@ -1,0 +1,127 @@
+flowchart TD
+    Start([User Initiates Decision Tree]) --> InjectState[Inject Initial State]
+    
+    InjectState --> TreeLaunch[onTreeLaunch Trigger]
+    
+    TreeLaunch --> LaunchTools[Execute Launch Tools]
+    LaunchTools --> FetchContext[fetchInitialContext]
+    
+    FetchContext --> APICall1[API Call with Auth]
+    
+    APICall1 --> StateUpdate1[Update State via JSONPath]
+    
+    StateUpdate1 --> PageEnter[onPageEnter Trigger]
+    
+    PageEnter --> PageTools[Execute Page Tools]
+    PageTools --> LoadOptions[Load Widget Options]
+    
+    LoadOptions --> WidgetRender[Render Widgets on Page]
+    
+    WidgetRender --> Widget1[Independent Widget - Make Dropdown]
+    WidgetRender --> Widget2[Dependent Widget - Model Dropdown]
+    WidgetRender --> Widget3[Search Widget - Progressive Search]
+    
+    Widget1 --> WidgetMount1[onMount: Fetch Options]
+    WidgetMount1 --> ToolExec1[Execute Tool: GET /inventory/makes]
+    ToolExec1 --> Cache1{Check Cache}
+    Cache1 -->|Hit| ReturnCached[Return Cached Data]
+    Cache1 -->|Miss| APICall2[Make API Call]
+    
+    APICall2 --> Dedup{Request Deduplication}
+    Dedup -->|Duplicate| WaitExisting[Wait for Existing]
+    Dedup -->|New| ExecuteAPI[Execute API Call]
+    
+    ExecuteAPI --> CircuitBreaker{Circuit Breaker}
+    CircuitBreaker -->|Open| Fallback[Use Fallback]
+    CircuitBreaker -->|Closed| CallAPI[Call External API]
+    
+    CallAPI --> Response{API Response}
+    Response -->|Success| MapResponse[Map Response]
+    Response -->|Error| Retry{Retry Logic}
+    
+    Retry -->|Max Retries| ErrorHandler[Error Handler]
+    Retry -->|Retry| CallAPI
+    
+    MapResponse --> UpdateState2[Update state.ui.make.options]
+    ReturnCached --> UpdateState2
+    Fallback --> UpdateState2
+    WaitExisting --> UpdateState2
+    
+    UpdateState2 --> UserInteraction[User Selects Value]
+    
+    UserInteraction --> OnChange[onChange Event]
+    OnChange --> UpdateFormValue[Update form.make.value]
+    
+    UpdateFormValue --> CheckDeps{Check Dependencies}
+    
+    CheckDeps -->|Has Deps| TriggerDependent[Trigger Dependent Widgets]
+    CheckDeps -->|No Deps| Continue1[Continue]
+    
+    TriggerDependent --> Widget2Update[Model Dropdown Updates]
+    Widget2Update --> ClearStale[Clear Stale Selection]
+    ClearStale --> FetchDependent[Fetch Models for Selected Make]
+    
+    FetchDependent --> ToolExec2[Execute Tool: GET /inventory/models]
+    ToolExec2 --> UpdateState3[Update state.ui.model.options]
+    
+    UpdateState3 --> WaitUser[Wait for User Action]
+    Continue1 --> WaitUser
+    
+    WaitUser --> MoreChanges{More Changes?}
+    MoreChanges -->|Yes| UserInteraction
+    MoreChanges -->|No| PageExit[onPageExit Trigger]
+    
+    PageExit --> ValidationTools[Execute Validation Tools]
+    ValidationTools --> ValidateAPI[POST /validate]
+    
+    ValidateAPI --> ValidationResult{Validation Result}
+    ValidationResult -->|Success| NavigateNext[Navigate to Next Page]
+    ValidationResult -->|Error| ShowErrors[Show Validation Errors]
+    
+    ShowErrors --> FixErrors[User Fixes Errors]
+    FixErrors --> UserInteraction
+    
+    NavigateNext --> NextPage{More Pages?}
+    NextPage -->|Yes| PageEnter
+    NextPage -->|No| TreeComplete[onTreeComplete]
+    
+    TreeComplete --> PersistState[Persist Final State]
+    PersistState --> End([End])
+    
+    ErrorHandler --> ErrorStrategy{Error Strategy}
+    ErrorStrategy -->|Bubble| BlockUser[Block User Action]
+    ErrorStrategy -->|Toast| ShowToast[Show Error Toast]
+    ErrorStrategy -->|Fallback| UseFallback[Use Default Values]
+    ErrorStrategy -->|Silent| LogError[Log and Continue]
+    
+    BlockUser --> WaitUser
+    ShowToast --> WaitUser
+    UseFallback --> UpdateState2
+    LogError --> UpdateState2
+    
+    StateUpdate1 -.-> StateStore[(State Store)]
+    UpdateState2 -.-> StateStore
+    UpdateState3 -.-> StateStore
+    UpdateFormValue -.-> StateStore
+    
+    StateStore -.-> Checkpoint[Create Checkpoint]
+    StateStore -.-> AuditLog[Audit Log]
+    
+    ToolExec1 -.-> Metrics[Collect Metrics]
+    ToolExec2 -.-> Metrics
+    ValidateAPI -.-> Metrics
+    
+    Metrics -.-> Monitor[Dashboard]
+    
+    UserInteraction --> ClientTool{Client Tool?}
+    ClientTool -->|Yes| ExecuteClient[Execute Client Tool]
+    ExecuteClient --> ClientResult[Update UI State]
+    ClientResult --> WaitUser
+    ClientTool -->|No| OnChange
+    
+    style Start fill:#e1f5fe
+    style End fill:#e1f5fe
+    style StateStore fill:#c8e6c9
+    style CircuitBreaker fill:#ffccbc
+    style Cache1 fill:#f3e5f5
+    style ValidationResult fill:#ffebee

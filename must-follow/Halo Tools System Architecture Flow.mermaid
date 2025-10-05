@@ -1,0 +1,187 @@
+flowchart TD
+    Start([Tool Execution Triggered]) --> ToolType{Tool Type?}
+    
+    ToolType -->|Server Tool| ServerTool[Server Tool Handler]
+    ToolType -->|Client Tool| ClientTool[Client Tool Handler]
+    ToolType -->|System Tool| SystemTool[System Tool Handler]
+    
+    %% Server Tool Flow
+    ServerTool --> CheckTrigger{Check Trigger Type}
+    CheckTrigger -->|onTreeLaunch| LaunchContext[Launch Context]
+    CheckTrigger -->|onPageEnter| PageContext[Page Context]
+    CheckTrigger -->|onPageExit| ValidationContext[Validation Context]
+    CheckTrigger -->|manual| ManualContext[Manual Context]
+    
+    LaunchContext --> PrepareRequest[Prepare Request]
+    PageContext --> PrepareRequest
+    ValidationContext --> PrepareRequest
+    ManualContext --> PrepareRequest
+    
+    PrepareRequest --> TemplateVars[Apply Dynamic Variables]
+    TemplateVars --> ExtractParams[Extract Parameters from State]
+    
+    ExtractParams --> BuildRequest[Build HTTP Request]
+    BuildRequest --> AddHeaders[Add Headers and Auth]
+    AddHeaders --> CheckCache{Check Cache Strategy}
+    
+    CheckCache -->|Memory| MemCache[Check Memory Cache]
+    CheckCache -->|LocalStorage| LocalCache[Check LocalStorage]
+    CheckCache -->|SessionStorage| SessionCache[Check SessionStorage]
+    CheckCache -->|No Cache| NoCache[Skip Cache]
+    
+    MemCache --> CacheHit{Cache Valid?}
+    LocalCache --> CacheHit
+    SessionCache --> CacheHit
+    NoCache --> CheckDedup[Check Deduplication]
+    
+    CacheHit -->|Hit| ReturnCached[Return Cached Response]
+    CacheHit -->|Miss| CheckDedup[Check Deduplication]
+    
+    CheckDedup --> DedupCheck{Duplicate Request?}
+    DedupCheck -->|Yes| WaitForExisting[Wait for Existing Request]
+    DedupCheck -->|No| CheckCircuit[Check Circuit Breaker]
+    
+    CheckCircuit --> CircuitState{Circuit State?}
+    CircuitState -->|Open| UseFallback[Use Fallback Data]
+    CircuitState -->|Half-Open| AttemptRequest[Attempt Request]
+    CircuitState -->|Closed| MakeRequest[Make API Request]
+    
+    AttemptRequest --> MakeRequest
+    MakeRequest --> SetTimeout[Set Timeout Handler]
+    SetTimeout --> ExecuteHTTP[Execute HTTP Call]
+    
+    ExecuteHTTP --> RateLimit{Rate Limit Check}
+    RateLimit -->|Exceeded| RateLimitError[Rate Limit Error]
+    RateLimit -->|OK| CallExternal[Call External API]
+    
+    CallExternal --> APIResponse{Response Status}
+    APIResponse -->|Success| ValidateResponse[Validate Response Schema]
+    APIResponse -->|Timeout| TimeoutHandler[Handle Timeout]
+    APIResponse -->|5xx Error| ServerError[Handle Server Error]
+    APIResponse -->|4xx Error| ClientError[Handle Client Error]
+    APIResponse -->|Network Error| NetworkError[Handle Network Error]
+    
+    ValidateResponse --> ResponseValid{Schema Valid?}
+    ResponseValid -->|Yes| ProcessAssignments[Process Assignments]
+    ResponseValid -->|No| SchemaError[Schema Validation Error]
+    
+    ProcessAssignments --> MapFields[Map Response Fields via JSONPath]
+    MapFields --> ApplyDefaults[Apply Default Values if Missing]
+    ApplyDefaults --> MergeStrategy{Merge Strategy?}
+    
+    MergeStrategy -->|Replace| ReplaceState[Replace State Values]
+    MergeStrategy -->|Merge| MergeState[Merge with Existing State]
+    
+    ReplaceState --> UpdateState[Update State Store]
+    MergeState --> UpdateState
+    
+    TimeoutHandler --> RetryDecision{Retry Strategy?}
+    ServerError --> RetryDecision
+    NetworkError --> RetryDecision
+    
+    RetryDecision -->|Exponential| ExpBackoff[Exponential Backoff]
+    RetryDecision -->|Fixed| FixedDelay[Fixed Delay]
+    RetryDecision -->|Linear| LinearDelay[Linear Delay]
+    RetryDecision -->|No Retry| HandleError[Handle Error]
+    
+    ExpBackoff --> CheckRetryCount{Retry Count OK?}
+    FixedDelay --> CheckRetryCount
+    LinearDelay --> CheckRetryCount
+    
+    CheckRetryCount -->|Under Limit| MakeRequest
+    CheckRetryCount -->|Exceeded| HandleError[Handle Error]
+    
+    HandleError --> ErrorStrategy{Error Strategy?}
+    ErrorStrategy -->|Bubble| BubbleError[Throw Error Up]
+    ErrorStrategy -->|Toast| ShowToast[Show Toast Message]
+    ErrorStrategy -->|Fallback| LoadFallback[Load Fallback Data]
+    ErrorStrategy -->|Silent| LogSilent[Log Silently]
+    
+    ClientError --> HandleError
+    SchemaError --> HandleError
+    RateLimitError --> HandleError
+    
+    %% Client Tool Flow
+    ClientTool --> ClientFunction{Client Function Type}
+    ClientFunction -->|openModal| OpenModal[Open Modal Window]
+    ClientFunction -->|scrollIntoView| ScrollView[Scroll to Element]
+    ClientFunction -->|focusElement| FocusElem[Focus Element]
+    ClientFunction -->|setValue| SetValue[Set Value in DOM]
+    ClientFunction -->|custom| CustomFunc[Custom Function]
+    
+    OpenModal --> GetParams[Get Parameters from State]
+    ScrollView --> GetParams
+    FocusElem --> GetParams
+    SetValue --> GetParams
+    CustomFunc --> GetParams
+    
+    GetParams --> ExecuteClient[Execute Client Action]
+    ExecuteClient --> ClientResult{Has Rollback?}
+    
+    ClientResult -->|Yes| StoreRollback[Store Rollback Function]
+    ClientResult -->|No| CompleteClient[Complete Client Tool]
+    
+    StoreRollback --> CompleteClient
+    
+    %% System Tool Flow
+    SystemTool --> SystemOp{System Operation}
+    SystemOp -->|assign| AssignOp[Assign Value]
+    SystemOp -->|merge| MergeOp[Merge Values]
+    SystemOp -->|delete| DeleteOp[Delete Path]
+    SystemOp -->|transform| TransformOp[Transform Data]
+    
+    AssignOp --> ValidatePath[Validate JSONPath]
+    MergeOp --> ValidatePath
+    DeleteOp --> ValidatePath
+    TransformOp --> CheckTransform{Transform Type}
+    
+    CheckTransform -->|jsonata| JSONataExpr[Execute JSONata]
+    CheckTransform -->|javascript| JSTransform[Execute JS Transform]
+    
+    JSONataExpr --> ValidatePath
+    JSTransform --> ValidatePath
+    
+    ValidatePath --> ApplySystemOp[Apply Operation to State]
+    ApplySystemOp --> UpdateState
+    
+    %% Common completion paths
+    UpdateState --> RecordMetrics[Record Metrics]
+    CompleteClient --> RecordMetrics
+    ReturnCached --> RecordMetrics
+    WaitForExisting --> RecordMetrics
+    UseFallback --> RecordMetrics
+    LoadFallback --> RecordMetrics
+    LogSilent --> RecordMetrics
+    
+    RecordMetrics --> UpdateMetrics[Update Tool Metrics]
+    UpdateMetrics --> TrackTelemetry[Track Telemetry]
+    
+    TrackTelemetry --> MetricsData[Collect: Timing, Errors, Cache Hits]
+    MetricsData --> CircuitUpdate[Update Circuit Breaker State]
+    
+    CircuitUpdate --> CacheUpdate{Update Cache?}
+    CacheUpdate -->|Success| StoreInCache[Store Response in Cache]
+    CacheUpdate -->|Error| SkipCache[Skip Cache Update]
+    
+    StoreInCache --> NotifyWidgets[Notify Dependent Widgets]
+    SkipCache --> NotifyWidgets
+    
+    NotifyWidgets --> End([Tool Execution Complete])
+    
+    BubbleError --> ThrowToPage[Throw to Page Handler]
+    ShowToast --> ToastNotify[Display Toast to User]
+    
+    ThrowToPage --> End
+    ToastNotify --> End
+    
+    %% Styling
+    style Start fill:#e1f5fe
+    style End fill:#e1f5fe
+    style ServerTool fill:#fce4ec
+    style ClientTool fill:#f3e5f5
+    style SystemTool fill:#fff3e0
+    style UpdateState fill:#c8e6c9
+    style CircuitState fill:#ffccbc
+    style CacheHit fill:#e8f5e9
+    style APIResponse fill:#ffebee
+    style RecordMetrics fill:#e3f2fd

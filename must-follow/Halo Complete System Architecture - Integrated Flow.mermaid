@@ -1,0 +1,190 @@
+flowchart TD
+    %% Entry Points
+    UserRequest([User Request in Chat]) --> ChatOrchestrator[Chat Orchestrator]
+    ChatOrchestrator --> LLMPlanner[LLM Planner & Analysis]
+    
+    LLMPlanner --> DecisionType{Decision Type}
+    DecisionType -->|Generate Tree| GenerateTree[Generate Decision Tree]
+    DecisionType -->|Use Existing| SelectTree[Select Existing Tree]
+    
+    %% Tree Generation Path
+    GenerateTree --> AnalyzeRequirements[Analyze Requirements]
+    AnalyzeRequirements --> WidgetSelection[GenAI Widget Selection]
+    
+    WidgetSelection --> WidgetMetadata[(Widget Registry<br/>• Intents<br/>• Domains<br/>• Complexity<br/>• Performance)]
+    
+    WidgetSelection --> ToolSelection[GenAI Tool Selection]
+    ToolSelection --> ToolRegistry[(Tool Registry<br/>• Server Tools<br/>• Client Tools<br/>• System Tools)]
+    
+    WidgetSelection --> BuildTree[Build Decision Tree Structure]
+    ToolSelection --> BuildTree
+    
+    BuildTree --> TreeConfig[Tree Configuration<br/>• Pages<br/>• Widgets<br/>• Tools<br/>• Rules<br/>• Navigation]
+    
+    %% Tree Execution Path
+    SelectTree --> TreeConfig
+    TreeConfig --> InitializeTree[Initialize Decision Tree]
+    
+    InitializeTree --> InjectInitialState[Inject Initial State]
+    
+    %% State Management System
+    InjectInitialState --> StateStore[(STATE STORE<br/>Event Sourced<br/>Single Source of Truth)]
+    
+    StateStore --> StateStructure[State Structure<br/>• session<br/>• context<br/>• form<br/>• ui<br/>• tools<br/>• _meta]
+    
+    StateStructure --> TreeLaunch[onTreeLaunch Trigger]
+    
+    %% Launch Phase
+    TreeLaunch --> LaunchTools[Execute Launch Tools]
+    LaunchTools --> ToolRunner[Tool Runner Service]
+    
+    %% Tool System Integration
+    ToolRunner --> ToolType{Tool Type?}
+    
+    ToolType -->|Server| ServerTool[Server Tool<br/>• API Calls<br/>• Webhooks<br/>• Auth]
+    ToolType -->|Client| ClientTool[Client Tool<br/>• UI Actions<br/>• DOM Manipulation]
+    ToolType -->|System| SystemTool[System Tool<br/>• State Operations<br/>• Transformations]
+    
+    ServerTool --> ToolFeatures[Tool Features<br/>• Circuit Breaker<br/>• Rate Limiting<br/>• Deduplication<br/>• Caching<br/>• Retry Logic]
+    ClientTool --> ToolExecution[Tool Execution]
+    SystemTool --> ToolExecution
+    
+    ToolFeatures --> ExternalAPIs[External APIs<br/>• Partner Systems<br/>• Databases<br/>• Services]
+    
+    ExternalAPIs --> ToolResponse[Tool Response]
+    ToolExecution --> ToolResponse
+    
+    ToolResponse --> Assignments[Process Assignments<br/>JSONPath Mapping]
+    Assignments --> UpdateState[Update State Store]
+    
+    UpdateState --> StateStore
+    
+    %% Page Rendering
+    UpdateState --> PageRender[Render Page]
+    
+    PageRender --> PageTools[onPageEnter Tools]
+    PageTools --> ToolRunner
+    
+    PageRender --> WidgetRuntime[Widget Runtime<br/>Form.io + JS Sandbox]
+    
+    %% Widget System Integration
+    WidgetRuntime --> LoadWidgets[Load Page Widgets]
+    
+    LoadWidgets --> WidgetTypes{Widget Categories}
+    WidgetTypes -->|Input| InputWidgets[Input Widgets<br/>• TextInput<br/>• NumberInput<br/>• DatePicker]
+    WidgetTypes -->|Collection| CollectionWidgets[Collection Widgets<br/>• Dropdown<br/>• RadioGroup<br/>• Checkboxes]
+    WidgetTypes -->|Search| SearchWidgets[Search Widgets<br/>• ProgressiveSearch<br/>• Autocomplete]
+    WidgetTypes -->|Map| MapWidgets[Map Widgets<br/>• AddressInput<br/>• LocationPicker]
+    WidgetTypes -->|Container| ContainerWidgets[Container Widgets<br/>• Tabs<br/>• Accordion]
+    WidgetTypes -->|Visualization| VizWidgets[Visualization Widgets<br/>• Charts<br/>• Graphs]
+    
+    InputWidgets --> WidgetLifecycle[Widget Lifecycle]
+    CollectionWidgets --> WidgetLifecycle
+    SearchWidgets --> WidgetLifecycle
+    MapWidgets --> WidgetLifecycle
+    ContainerWidgets --> WidgetLifecycle
+    VizWidgets --> WidgetLifecycle
+    
+    WidgetLifecycle --> WidgetFeatures[Widget Features<br/>• Data Sources<br/>• Dependencies<br/>• Validation<br/>• Events<br/>• Performance<br/>• Accessibility]
+    
+    WidgetFeatures --> WidgetDataSource{Has Data Source?}
+    
+    WidgetDataSource -->|Yes| CallTool[Call Associated Tool]
+    WidgetDataSource -->|No| RenderDirect[Render Widget]
+    
+    CallTool --> ToolRunner
+    
+    RenderDirect --> UserInteraction[User Interaction]
+    
+    %% User Interaction Flow
+    UserInteraction --> EventHandling[Event Handling<br/>• onChange<br/>• onBlur<br/>• onFocus<br/>• onSubmit]
+    
+    EventHandling --> Validation{Validate Input?}
+    
+    Validation -->|Valid| UpdateFormState[Update Form State]
+    Validation -->|Invalid| ShowValidationError[Show Validation Error]
+    
+    ShowValidationError --> UserInteraction
+    
+    UpdateFormState --> StateStore
+    
+    UpdateFormState --> CheckDependencies{Check Widget<br/>Dependencies?}
+    
+    CheckDependencies -->|Has Deps| TriggerDependents[Trigger Dependent Widgets]
+    CheckDependencies -->|No Deps| ContinueFlow[Continue]
+    
+    TriggerDependents --> WidgetLifecycle
+    
+    %% Navigation Flow
+    ContinueFlow --> NavigationCheck{Navigation Event?}
+    
+    NavigationCheck -->|Next Page| PageExit[onPageExit Trigger]
+    NavigationCheck -->|Previous| PageExit
+    NavigationCheck -->|Stay| UserInteraction
+    
+    PageExit --> ExitTools[Execute Exit Tools<br/>• Validation<br/>• Persistence]
+    
+    ExitTools --> ToolRunner
+    
+    ExitTools --> ExitResult{Exit Allowed?}
+    
+    ExitResult -->|Success| NavigateToPage[Navigate to Page]
+    ExitResult -->|Blocked| ShowBlockError[Show Error<br/>Block Navigation]
+    
+    ShowBlockError --> UserInteraction
+    
+    NavigateToPage --> MorePages{More Pages?}
+    
+    MorePages -->|Yes| PageRender
+    MorePages -->|No| TreeComplete[onTreeComplete]
+    
+    %% Completion Flow
+    TreeComplete --> CompleteTools[Execute Completion Tools]
+    CompleteTools --> ToolRunner
+    
+    CompleteTools --> PersistFinalState[Persist Final State]
+    PersistFinalState --> StateStore
+    
+    PersistFinalState --> ReturnToChat[Return Results to Chat]
+    ReturnToChat --> ChatOrchestrator
+    
+    ChatOrchestrator --> UserResponse([User Receives Response])
+    
+    %% Supporting Systems
+    StateStore -.-> EventLog[(Event Log<br/>• Audit Trail<br/>• Checkpoints<br/>• Time Travel)]
+    
+    StateStore -.-> StateObserver[State Observer<br/>• Change Detection<br/>• Patch Generation<br/>• Subscriptions]
+    
+    ToolRunner -.-> Observability[Observability Layer<br/>• Metrics<br/>• Tracing<br/>• Error Tracking<br/>• Performance]
+    
+    WidgetRuntime -.-> SecurityLayer[Security Layer<br/>• CSP<br/>• Sandboxing<br/>• Input Sanitization<br/>• Rate Limiting]
+    
+    Observability -.-> Dashboard[Monitoring Dashboard<br/>• Real-time Metrics<br/>• Alerts<br/>• Analytics]
+    
+    EventLog -.-> DevTools[Developer Tools<br/>• State Inspector<br/>• Time Travel Debug<br/>• Replay<br/>• Testing]
+    
+    %% Error Handling System
+    ToolResponse -.-> ErrorHandler{Error Handler}
+    ErrorHandler -->|Retry| RetryManager[Retry Manager<br/>• Exponential Backoff<br/>• Circuit Breaker]
+    ErrorHandler -->|Fallback| FallbackSystem[Fallback System<br/>• Cache<br/>• Defaults]
+    ErrorHandler -->|Alert| ErrorAlerts[Error Alerts<br/>• Toast<br/>• Modal<br/>• Log]
+    
+    RetryManager -.-> ToolRunner
+    FallbackSystem -.-> StateStore
+    
+    %% Caching System
+    ToolRunner -.-> CacheLayer[(Cache Layer<br/>• Memory<br/>• LocalStorage<br/>• SessionStorage<br/>• TTL Management)]
+    
+    %% Configuration System
+    TreeConfig -.-> ConfigStore[(Configuration<br/>• Feature Flags<br/>• A/B Tests<br/>• Environment)]
+    
+    %% Styling
+    style UserRequest fill:#e1f5fe
+    style UserResponse fill:#e1f5fe
+    style StateStore fill:#c8e6c9
+    style ChatOrchestrator fill:#fff3e0
+    style ToolRunner fill:#fce4ec
+    style WidgetRuntime fill:#f3e5f5
+    style SecurityLayer fill:#ffccbc
+    style Observability fill:#e3f2fd
+    style Dashboard fill:#e8f5e9

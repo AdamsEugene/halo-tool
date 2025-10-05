@@ -1,0 +1,28 @@
+{
+  "id": "assignValue",
+  "type": "system",
+  "name": "Assign Value",
+  "description": "Assigns a computed or static value to a specific state path",
+  "triggers": ["manual"],
+  "system": {
+    "op": "assign",
+    "path": "$.form.computedField.value",
+    "value": "Default computed value"
+  },
+  "assignments": [
+    {
+      "source": "response",
+      "valuePath": "$.operation",
+      "statePath": "$.tools.lastOperation"
+    },
+    {
+      "source": "response",
+      "valuePath": "$.success",
+      "statePath": "$.tools.lastOperationSuccess"
+    }
+  ],
+  "telemetry": {
+    "trackTiming": true,
+    "trackErrors": true
+  }
+}

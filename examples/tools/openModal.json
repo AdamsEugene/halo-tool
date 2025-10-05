@@ -1,0 +1,36 @@
+{
+  "id": "openModal",
+  "type": "client",
+  "name": "Open Modal",
+  "description": "Opens a modal dialog with specified content and configuration",
+  "triggers": ["manual"],
+  "client": {
+    "fn": "openModal",
+    "rollback": {
+      "fn": "closeModal",
+      "params": "{{$.modalId}}"
+    }
+  },
+  "dynamicVariables": {
+    "modalTitle": "$.ui.modal.title",
+    "modalContent": "$.ui.modal.content",
+    "modalSize": "$.ui.modal.size"
+  },
+  "assignments": [
+    {
+      "source": "response",
+      "valuePath": "$.modalId",
+      "statePath": "$.ui.currentModal.id"
+    },
+    {
+      "source": "response",
+      "valuePath": "$.opened",
+      "statePath": "$.ui.currentModal.isOpen"
+    }
+  ],
+  "onError": "toast",
+  "telemetry": {
+    "trackTiming": true,
+    "trackErrors": true
+  }
+}

@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>haloTool Plugin Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 100vw;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+        }
+
+        .demo-section {
+            background: white;
+            margin: 20px 0;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .demo-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn.success { background: linear-gradient(135deg, #27ae60, #229954); }
+        .btn.warning { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .btn.danger { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+        .output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .state-display {
+            background: #34495e;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status.ready { background: #d5f4e6; color: #27ae60; }
+        .status.loading { background: #fef9e7; color: #f39c12; }
+        .status.error { background: #fadbd8; color: #e74c3c; }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        
+        /* Enhanced button hover effects */
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Responsive grid improvements */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            body {
+                padding: 10px;
+            }
+            
+            .demo-section {
+                padding: 15px;
+            }
+        }
+        
+        /* Custom scrollbar for output areas */
+        .output::-webkit-scrollbar, .state-display::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .output::-webkit-scrollbar-track, .state-display::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        
+        .output::-webkit-scrollbar-thumb, .state-display::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+        
+        .output::-webkit-scrollbar-thumb:hover, .state-display::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        
+        /* Input field improvements */
+        .input-group input, .input-group textarea, .input-group select {
+            transition: all 0.2s ease;
+        }
+        
+        .input-group input:hover, .input-group textarea:hover, .input-group select:hover {
+            border-color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 haloTool Plugin Demo</h1>
+        <p>Interactive demonstration of the haloTool plugin system</p>
+        <div id="init-status">
+            <span class="status loading">Initializing...</span>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🚀 Advanced HTTP Requests</h2>
+        <p>Configure and test HTTP requests with full options:</p>
+        
+        <div class="grid">
+            <div>
+                <!-- URL and Method on same line -->
+                <div class="input-group">
+                    <label>Request:</label>
+                    <div style="display: flex; gap: 8px; align-items: stretch;">
+                        <select id="http-method" title="HTTP Method" style="width: 90px; padding: 10px; border: 1px solid #ddd; border-radius: 6px 0 0 6px; font-size: 12px; font-weight: 600; background: #f8f9fa; border-right: none; color: #495057;">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="PATCH">PATCH</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                        <input type="text" id="http-url" value="https://jsonplaceholder.typicode.com/posts/1" placeholder="https://api.example.com/endpoint" style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 0 6px 6px 0; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 13px; background: white;">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Headers <span style="color: #6c757d; font-size: 12px;">(JSON format)</span>:</label>
+                    <textarea id="http-headers" rows="3" placeholder='{"Content-Type": "application/json"}' style="font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px; resize: vertical;"></textarea>
+                </div>
+                
+                <div class="input-group">
+                    <label>Request Body <span style="color: #6c757d; font-size: 12px;">(JSON format)</span>:</label>
+                    <textarea id="http-body" rows="4" placeholder='{"title": "Test Post", "body": "This is a test", "userId": 1}'></textarea>
+                </div>
+            </div>
+            
+            <div>
+                <div class="input-group">
+                    <label>Authentication:</label>
+                    <select id="auth-type" onchange="toggleAuthFields()" title="Authentication Type" style="margin-bottom: 10px;">
+                        <option value="">No Authentication</option>
+                        <option value="bearer">Bearer Token</option>
+                        <option value="basic">Basic Auth</option>
+                        <option value="apiKey">API Key</option>
+                    </select>
+                </div>
+                
+                <div id="auth-bearer" class="input-group" style="display: none; background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #007bff; margin-top: 8px;">
+                    <label style="margin-bottom: 6px; font-size: 13px; color: #495057;">Bearer Token:</label>
+                    <input type="text" id="auth-token" placeholder="your-bearer-token" style="font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;">
+                </div>
+                
+                <div id="auth-basic" style="display: none; background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #28a745; margin-top: 8px;">
+                    <div class="input-group" style="margin-bottom: 8px;">
+                        <label style="margin-bottom: 6px; font-size: 13px; color: #495057;">Username:</label>
+                        <input type="text" id="auth-username" placeholder="username" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label style="margin-bottom: 6px; font-size: 13px; color: #495057;">Password:</label>
+                        <input type="password" id="auth-password" placeholder="password" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                </div>
+                
+                <div id="auth-apikey" style="display: none; background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 3px solid #ffc107; margin-top: 8px;">
+                    <div class="input-group" style="margin-bottom: 8px;">
+                        <label style="margin-bottom: 6px; font-size: 13px; color: #495057;">Header/Query Key:</label>
+                        <input type="text" id="auth-key" placeholder="X-API-Key" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label style="margin-bottom: 6px; font-size: 13px; color: #495057;">API Key Value:</label>
+                        <input type="text" id="auth-value" placeholder="your-api-key" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Save Response to State Path:</label>
+                    <input type="text" id="state-save-path" placeholder="api.response" value="api.response" style="font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px; background: #f8f9fa;">
+                </div>
+                
+                <div class="input-group">
+                    <label>Field Mappings <span style="color: #6c757d; font-size: 12px;">(extract specific fields)</span>:</label>
+                    <div id="field-mappings-container">
+                        <div class="mapping-row" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <input type="text" placeholder="$.company.name" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="mapping-from">
+                            <span style="color: #6c757d; font-weight: bold;">→</span>
+                            <input type="text" placeholder="form.company.name" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="mapping-to">
+                            <button type="button" onclick="removeMappingRow(this)" style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1;">×</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addMappingRow()" style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 13px;">+ Add Mapping</button>
+                    <small style="color: #6c757d; font-size: 11px; display: block; margin-top: 6px;">
+                        Extract fields from API response using JSONPath ($.field.subfield) and save to state paths (form.company.name)
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e9ecef; flex-wrap: wrap;">
+            <button class="btn success" onclick="executeAdvancedRequest()" style="background: linear-gradient(135deg, #28a745, #20c997); border: none; padding: 12px 24px; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);">
+                🚀 Execute Request
+            </button>
+            <button class="btn" onclick="clearRequestForm()" style="background: #f8f9fa; border: 1px solid #dee2e6; padding: 12px 20px; border-radius: 6px; color: #495057; cursor: pointer; transition: all 0.2s;">
+                🗑️ Clear Form
+            </button>
+            
+            <div style="display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap;">
+                <button class="btn" onclick="loadJSONPlaceholderExample()" style="background: #e3f2fd; border: 1px solid #2196f3; padding: 8px 12px; border-radius: 4px; color: #1976d2; font-size: 12px; cursor: pointer;">
+                    📄 GET Example
+                </button>
+                <button class="btn" onclick="loadPostExample()" style="background: #f3e5f5; border: 1px solid #9c27b0; padding: 8px 12px; border-radius: 4px; color: #7b1fa2; font-size: 12px; cursor: pointer;">
+                    📝 POST Example
+                </button>
+                <button class="btn" onclick="loadFieldMappingExample()" style="background: #fff3e0; border: 1px solid #ff9800; padding: 8px 12px; border-radius: 4px; color: #f57c00; font-size: 12px; cursor: pointer;">
+                    🔗 Mapping Example
+                </button>
+            </div>
+        </div>
+        
+        <div class="output" id="http-output">Configure and execute HTTP requests...</div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🚀 Quick API Calls</h2>
+        <p>Simple API call methods for quick testing:</p>
+        
+        <div class="input-group">
+            <label>API URL:</label>
+            <input type="text" id="api-url" value="https://jsonplaceholder.typicode.com/users/1" placeholder="Enter API URL">
+        </div>
+
+        <button class="btn" onclick="quickGet()">GET Request</button>
+        <button class="btn" onclick="quickPost()">POST Request</button>
+        <button class="btn success" onclick="quickGetWithState()">GET → State</button>
+
+        <div class="output" id="api-output">Ready for API calls...</div>
+    </div>
+
+    <div class="grid">
+        <div class="demo-section">
+            <h2>🏗️ Tool Creation</h2>
+            <p>Create and execute custom tools:</p>
+
+            <button class="btn" onclick="createServerTool()">Create Server Tool</button>
+            <button class="btn" onclick="createSystemTool()">Create System Tool</button>
+            <button class="btn warning" onclick="executeCustomTool()">Execute Custom Tool</button>
+
+            <div class="output" id="tool-output">Tools ready to be created...</div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🔄 State Management</h2>
+            <p>Manage application state:</p>
+
+            <div class="input-group">
+                <label>State Path:</label>
+                <input type="text" id="state-path" value="user.name" placeholder="e.g., user.name">
+            </div>
+            <div class="input-group">
+                <label>State Value:</label>
+                <input type="text" id="state-value" value="John Doe" placeholder="Enter value">
+            </div>
+
+            <button class="btn" onclick="updateState()">Update State</button>
+            <button class="btn" onclick="getState()">Get State</button>
+            <button class="btn danger" onclick="clearState()">Clear State</button>
+
+            <div class="state-display" id="state-display">State will appear here...</div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>⚡ Workflow Execution</h2>
+        <p>Execute sequences of tools:</p>
+
+        <button class="btn success" onclick="runWorkflow()">Run Sample Workflow</button>
+        <button class="btn" onclick="runParallelWorkflow()">Run Parallel Workflow</button>
+
+        <div class="output" id="workflow-output">Workflow results will appear here...</div>
+    </div>
+
+    <div class="demo-section">
+        <h2>📊 Monitoring & Metrics</h2>
+        <p>View system metrics and monitoring data:</p>
+
+        <button class="btn" onclick="showMetrics()">Show Metrics</button>
+        <button class="btn" onclick="showTools()">List All Tools</button>
+        <button class="btn warning" onclick="simulateError()">Simulate Error</button>
+
+        <div class="output" id="metrics-output">Metrics will appear here...</div>
+    </div>
+
+    <div class="demo-section">
+        <h2>💻 Code Examples</h2>
+        <p>Here's how to use haloTool in your applications:</p>
+
+        <h3>Basic Usage:</h3>
+        <div class="code-block">
+// Simple API call
+const result = await haloTool.get('https://api.example.com/data');
+
+// Update state
+haloTool.state.set({ user: { name: 'John', role: 'admin' } });
+
+// Execute workflow
+const results = await haloTool.workflow(['tool1', 'tool2', 'tool3']);
+        </div>
+
+        <h3>Advanced Tool Creation:</h3>
+        <div class="code-block">
+// Create a server tool
+await haloTool.createServerTool({
+  id: 'fetchUserProfile',
+  name: 'Fetch User Profile',
+  description: 'Fetches user profile data',
+  url: 'https://api.example.com/users/{{$.userId}}',
+  method: 'GET',
+  assignments: [{
+    source: 'response',
+    valuePath: '$.user',
+    statePath: '$.currentUser'
+  }],
+  cache: { ttlSec: 300, strategy: 'memory' },
+  retry: { max: 3, strategy: 'exponential' }
+});
+        </div>
+    </div>
+
+    <!-- Load haloTool -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="./dist/halo-tool.browser.js"></script>
+    <script>
+        // Initialize the real haloTool plugin
+        let haloTool;
+
+        async function initializehaloTool() {
+            try {
+                // The browser bundle exposes HaloTool globally on window
+                if (typeof window.HaloTool !== 'undefined') {
+                    haloTool = window.HaloTool;
+
+                    console.log('haloTool', haloTool);
+                    
+                    // Initialize if needed
+                    if (haloTool.init && typeof haloTool.init === 'function') {
+                        await haloTool.init({
+                            enableMetrics: true,
+                            enableTracing: false,
+                            enableErrorTracking: true,
+                            enableStateManagement: true,
+                            globalAccess: true
+                        });
+                    }
+                    
+                    document.getElementById('init-status').innerHTML = '<span class="status ready">Ready</span>';
+                    log('✅ HaloTool initialized successfully!');
+                } else {
+                    throw new Error('window.HaloTool not found. Make sure the browser bundle is loaded correctly.');
+                }
+            } catch (error) {
+                document.getElementById('init-status').innerHTML = '<span class="status error">Error</span>';
+                console.error('Failed to initialize haloTool:', error);
+                
+                // Fallback to mock for demo purposes
+                initializeMockhaloTool();
+            }
+        }
+
+        function log(message, type = 'info') {
+            const outputs = ['api-output', 'tool-output', 'workflow-output', 'metrics-output'];
+            outputs.forEach(id => {
+                const output = document.getElementById(id);
+                if (output && (output.textContent.includes('Ready') || output.textContent.includes('will appear'))) {
+                    output.innerHTML = `<div style="color: #3498db;">[${new Date().toLocaleTimeString()}] ${message}</div>`;
+                }
+            });
+        }
+
+        // Initialize haloTool when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializehaloTool, 1000);
+        });
+
+        // Fallback mock implementation for demo purposes
+        function initializeMockhaloTool() {
+            haloTool = {
+                async request(url, options = {}, statePath) {
+                    const { method = 'GET', headers = {}, body, auth } = options;
+                    log(`${method} ${url}`, 'info');
+                    
+                    if (auth) {
+                        log(`Using ${auth.type} authentication`, 'info');
+                    }
+                    
+                    try {
+                        // Simulate API call with more realistic mock data
+                        const mockData = { 
+                            id: Math.floor(Math.random() * 1000),
+                            title: 'Mock Response', 
+                            message: `Mock ${method} response from ${url}`,
+                            timestamp: new Date().toISOString(),
+                            requestHeaders: headers,
+                            requestBody: body
+                        };
+                        
+                        if (statePath) {
+                            this.state = this.state || { data: {} };
+                            this.updateState(statePath, mockData);
+                        }
+
+                        const result = { 
+                            success: true, 
+                            data: mockData,
+                            status: 200,
+                            statusText: 'OK',
+                            headers: {
+                                'content-type': 'application/json',
+                                'x-mock-response': 'true'
+                            }
+                        };
+                        log(`✅ ${method} successful: ${JSON.stringify(result, null, 2)}`);
+                        return result;
+                    } catch (error) {
+                        log(`❌ ${method} failed: ${error.message}`, 'error');
+                        throw error;
+                    }
+                },
+
+                async get(url, statePath) {
+                    return this.request(url, { method: 'GET' }, statePath);
+                },
+
+                async post(url, data, statePath) {
+                    return this.request(url, { method: 'POST', body: data }, statePath);
+                },
+
+                async put(url, data, statePath) {
+                    return this.request(url, { method: 'PUT', body: data }, statePath);
+                },
+
+                async patch(url, data, statePath) {
+                    return this.request(url, { method: 'PATCH', body: data }, statePath);
+                },
+
+                async delete(url, statePath) {
+                    return this.request(url, { method: 'DELETE' }, statePath);
+                },
+
+                async createServerTool(config) {
+                    log(`Creating server tool: ${config.name}`);
+                    this.tools = this.tools || new Map();
+                    this.tools.set(config.id, { ...config, type: 'server' });
+                    log(`✅ Server tool '${config.id}' created successfully`);
+                    return config.id;
+                },
+
+                async createSystemTool(config) {
+                    log(`Creating system tool: ${config.name}`);
+                    this.tools = this.tools || new Map();
+                    this.tools.set(config.id, { ...config, type: 'system' });
+                    log(`✅ System tool '${config.id}' created successfully`);
+                    return config.id;
+                },
+
+                async executeTool(toolId, context) {
+                    const tool = this.tools?.get(toolId);
+                    if (!tool) {
+                        throw new Error(`Tool '${toolId}' not found`);
+                    }
+
+                    log(`Executing tool: ${tool.name}`);
+                    
+                    // Simulate tool execution
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const result = {
+                        success: true,
+                        data: { message: `Tool '${toolId}' executed successfully`, timestamp: Date.now() },
+                        executionTime: 500
+                    };
+
+                    log(`✅ Tool execution completed: ${JSON.stringify(result, null, 2)}`);
+                    return result;
+                },
+
+                async workflow(toolIds, initialState = {}) {
+                    log(`Starting workflow with tools: [${toolIds.join(', ')}]`);
+                    
+                    const results = [];
+                    for (const toolId of toolIds) {
+                        log(`Executing workflow step: ${toolId}`);
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        results.push({
+                            toolId,
+                            success: true,
+                            data: { step: toolId, completed: new Date().toISOString() },
+                            executionTime: 300
+                        });
+                    }
+
+                    log(`✅ Workflow completed successfully with ${results.length} steps`);
+                    return results;
+                },
+
+                getState() {
+                    return this.state?.data || {};
+                },
+
+                setState(newState) {
+                    this.state = this.state || {};
+                    this.state.data = { ...newState };
+                    log(`State updated: ${JSON.stringify(this.state.data, null, 2)}`);
+                },
+
+                updateState(path, value) {
+                    this.state = this.state || { data: {} };
+                    const parts = path.split('.');
+                    let current = this.state.data;
+                    
+                    for (let i = 0; i < parts.length - 1; i++) {
+                        if (!current[parts[i]]) current[parts[i]] = {};
+                        current = current[parts[i]];
+                    }
+                    
+                    current[parts[parts.length - 1]] = value;
+                    log(`State path '${path}' updated to: ${JSON.stringify(value)}`);
+                },
+
+                getMetrics() {
+                    return [
+                        { name: 'tools.executed', value: this.tools?.size || 0, timestamp: Date.now() },
+                        { name: 'api.calls', value: Math.floor(Math.random() * 100), timestamp: Date.now() },
+                        { name: 'cache.hits', value: Math.floor(Math.random() * 50), timestamp: Date.now() }
+                    ];
+                },
+
+                getAllTools() {
+                    return Array.from(this.tools?.values() || []);
+                },
+
+                captureError(error) {
+                    log(`❌ Error captured: ${error.message}`, 'error');
+                    return `error_${Date.now()}`;
+                },
+
+                state: { data: {} },
+                tools: new Map()
+            };
+            
+            document.getElementById('init-status').innerHTML = '<span class="status ready">Ready (Mock)</span>';
+            log('⚠️ Mock HaloTool initialized as fallback');
+        }
+
+        // Simple JSONPath extraction function
+        function extractValue(obj, path) {
+            if (!path || !obj) return undefined;
+            
+            // Remove leading $ if present
+            const cleanPath = path.replace(/^\$\.?/, '');
+            
+            if (!cleanPath) return obj;
+            
+            const parts = cleanPath.split('.');
+            let current = obj;
+            
+            for (const part of parts) {
+                if (current === null || current === undefined) return undefined;
+                
+                // Handle array indices [0], [1], etc.
+                if (part.includes('[') && part.includes(']')) {
+                    const [key, indexStr] = part.split('[');
+                    const index = parseInt(indexStr.replace(']', ''));
+                    
+                    if (key) {
+                        current = current[key];
+                    }
+                    
+                    if (Array.isArray(current) && !isNaN(index)) {
+                        current = current[index];
+                    }
+                } else {
+                    current = current[part];
+                }
+            }
+            
+            return current;
+        }
+
+        // Set nested value in object using dot notation
+        function setNestedValue(obj, path, value) {
+            const parts = path.split('.');
+            let current = obj;
+            
+            for (let i = 0; i < parts.length - 1; i++) {
+                if (!current[parts[i]] || typeof current[parts[i]] !== 'object') {
+                    current[parts[i]] = {};
+                }
+                current = current[parts[i]];
+            }
+            
+            current[parts[parts.length - 1]] = value;
+        }
+
+        // Field mapping row management
+        function addMappingRow() {
+            const container = document.getElementById('field-mappings-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'mapping-row';
+            newRow.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid #e9ecef;';
+            newRow.innerHTML = `
+                <input type="text" placeholder="$.address.city" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="mapping-from">
+                <span style="color: #6c757d; font-weight: bold;">→</span>
+                <input type="text" placeholder="form.address.city" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="mapping-to">
+                <button type="button" onclick="removeMappingRow(this)" style="background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1;">×</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeMappingRow(button) {
+            const container = document.getElementById('field-mappings-container');
+            // Keep at least one row
+            if (container.children.length > 1) {
+                button.parentNode.remove();
+            }
+        }
+
+        function clearAllMappings() {
+            const container = document.getElementById('field-mappings-container');
+            container.innerHTML = `
+                <div class="mapping-row" style="display: flex; gap: 10px; margin-bottom: 8px; align-items: center;">
+                    <input type="text" placeholder="$.company.name" style="flex: 1;" class="mapping-from">
+                    <span style="color: #7f8c8d;">→</span>
+                    <input type="text" placeholder="form.company.name" style="flex: 1;" class="mapping-to">
+                    <button type="button" onclick="removeMappingRow(this)" style="background: #e74c3c; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer;">×</button>
+                </div>
+            `;
+        }
+
+        function getMappingsFromUI() {
+            const mappings = [];
+            const rows = document.querySelectorAll('.mapping-row');
+            
+            rows.forEach(row => {
+                const fromInput = row.querySelector('.mapping-from');
+                const toInput = row.querySelector('.mapping-to');
+                
+                if (fromInput.value.trim() && toInput.value.trim()) {
+                    mappings.push({
+                        from: fromInput.value.trim(),
+                        to: toInput.value.trim()
+                    });
+                }
+            });
+            
+            return mappings;
+        }
+
+        function setMappingsInUI(mappings) {
+            const container = document.getElementById('field-mappings-container');
+            container.innerHTML = '';
+            
+            if (mappings.length === 0) {
+                clearAllMappings();
+                return;
+            }
+            
+            mappings.forEach(mapping => {
+                const newRow = document.createElement('div');
+                newRow.className = 'mapping-row';
+                newRow.style.cssText = 'display: flex; gap: 10px; margin-bottom: 8px; align-items: center;';
+                newRow.innerHTML = `
+                    <input type="text" placeholder="$.field.name" style="flex: 1;" class="mapping-from" value="${mapping.from}">
+                    <span style="color: #7f8c8d;">→</span>
+                    <input type="text" placeholder="form.field.name" style="flex: 1;" class="mapping-to" value="${mapping.to}">
+                    <button type="button" onclick="removeMappingRow(this)" style="background: #e74c3c; color: white; border: none; padding: 5px 8px; border-radius: 4px; cursor: pointer;">×</button>
+                `;
+                container.appendChild(newRow);
+            });
+        }
+
+        // Debug function to test field mapping logic
+        function testFieldMapping() {
+            const testData = {
+                address: {
+                    city: "Gwenborough",
+                    street: "Kulas Light",
+                    suite: "Apt. 556"
+                },
+                company: {
+                    name: "Romaguera-Crona",
+                    catchPhrase: "Multi-layered client-server"
+                },
+                name: "Leanne Graham",
+                username: "Bret",
+                email: "Sincere@april.biz",
+                phone: "1-770-736-8031 x56442",
+                website: "hildegard.org"
+            };
+            
+            console.log('🧪 Testing field mapping logic...');
+            console.log('Test data:', testData);
+            
+            const mappings = [
+                { from: "$.address.city", to: "form.address.city" },
+                { from: "$.company.name", to: "form.company.name" },
+                { from: "$.name", to: "form.user.fullName" }
+            ];
+            
+            const currentState = {};
+            
+            mappings.forEach(mapping => {
+                const value = extractValue(testData, mapping.from);
+                console.log(`Extracting ${mapping.from}:`, value);
+                
+                if (value !== undefined) {
+                    setNestedValue(currentState, mapping.to, value);
+                    console.log(`Set ${mapping.to} =`, value);
+                }
+            });
+            
+            console.log('Final state:', currentState);
+            return currentState;
+        }
+
+        // Add this to window for easy testing
+        window.testFieldMapping = testFieldMapping;
+
+        // Demo functions
+        function toggleAuthFields() {
+            const authType = document.getElementById('auth-type').value;
+            
+            // Hide all auth fields
+            document.getElementById('auth-bearer').style.display = 'none';
+            document.getElementById('auth-basic').style.display = 'none';
+            document.getElementById('auth-apikey').style.display = 'none';
+            
+            // Show relevant auth fields
+            if (authType === 'bearer') {
+                document.getElementById('auth-bearer').style.display = 'block';
+            } else if (authType === 'basic') {
+                document.getElementById('auth-basic').style.display = 'block';
+            } else if (authType === 'apiKey') {
+                document.getElementById('auth-apikey').style.display = 'block';
+            }
+        }
+
+        async function executeAdvancedRequest() {
+            const output = document.getElementById('http-output');
+            
+            try {
+                // Get form values
+                const url = document.getElementById('http-url').value;
+                const method = document.getElementById('http-method').value;
+                const headersText = document.getElementById('http-headers').value;
+                const bodyText = document.getElementById('http-body').value;
+                const authType = document.getElementById('auth-type').value;
+                const statePath = document.getElementById('state-save-path').value;
+                const fieldMappings = getMappingsFromUI();
+                
+                if (!url) {
+                    throw new Error('URL is required');
+                }
+                
+                output.innerHTML = '<div style="color: #f39c12;">🔄 Executing request...</div>';
+                
+                // Parse headers
+                let headers = {};
+                if (headersText.trim()) {
+                    try {
+                        headers = JSON.parse(headersText);
+                    } catch (e) {
+                        throw new Error('Invalid JSON in headers field');
+                    }
+                }
+                
+                // Parse body
+                let body = null;
+                if (bodyText.trim() && method !== 'GET') {
+                    try {
+                        body = JSON.parse(bodyText);
+                    } catch (e) {
+                        // If not valid JSON, use as string
+                        body = bodyText;
+                    }
+                }
+                
+                // Setup authentication
+                let auth = null;
+                if (authType) {
+                    auth = { type: authType };
+                    
+                    if (authType === 'bearer') {
+                        auth.token = document.getElementById('auth-token').value;
+                    } else if (authType === 'basic') {
+                        auth.username = document.getElementById('auth-username').value;
+                        auth.password = document.getElementById('auth-password').value;
+                    } else if (authType === 'apiKey') {
+                        auth.key = document.getElementById('auth-key').value;
+                        auth.value = document.getElementById('auth-value').value;
+                    }
+                }
+                
+                // Execute request using haloTool's enhanced request method
+                const options = {
+                    method,
+                    headers,
+                    body,
+                    auth
+                };
+                
+                // Execute the request (without auto-saving to state path yet)
+                const result = await haloTool.request(url, options);
+                
+                // Get current state for processing
+                const currentState = haloTool.getState();
+                
+                // First, save to statePath if provided
+                if (statePath) {
+                    setNestedValue(currentState, statePath, result.data);
+                }
+                
+                // Process field mappings if provided
+                let mappingResults = [];
+                console.log('⧟⧟⧟ fieldMappings: ', fieldMappings);
+                
+                if (fieldMappings.length > 0) {
+                    for (const mapping of fieldMappings) {
+                        if (mapping.from && mapping.to) {
+                            const extractedValue = extractValue(result.data, mapping.from);
+                            console.log('⧟⧟⧟ extractedValue: ', extractedValue);
+                            if (extractedValue !== undefined) {
+                                setNestedValue(currentState, mapping.to, extractedValue);
+                                console.log('⧟⧟⧟ currentState: ', currentState);
+                                mappingResults.push({
+                                    from: mapping.from,
+                                    to: mapping.to,
+                                    value: extractedValue
+                                });
+                                console.log(`✅ Mapped ${mapping.from} → ${mapping.to}:`, extractedValue);
+                            } else {
+                                console.warn(`⚠️ Could not extract value from path: ${mapping.from}`);
+                            }
+                        }
+                    }
+                }
+                
+                // Update the state with all changes
+                haloTool.setState(currentState);
+                
+                output.innerHTML = `
+                    <div style="color: #27ae60;">✅ Request ${result.success ? 'Successful' : 'Failed'}!</div>
+                    <div style="margin-top: 10px;"><strong>Status:</strong> ${result.status} ${result.statusText}</div>
+                    <div style="margin-top: 5px;"><strong>Headers:</strong></div>
+                    <pre style="font-size: 11px; margin: 5px 0;">${JSON.stringify(result.headers, null, 2)}</pre>
+                    <div style="margin-top: 5px;"><strong>Response Data:</strong></div>
+                    <pre>${JSON.stringify(result.data, null, 2)}</pre>
+                    ${statePath ? `<div style="color: #3498db; margin-top: 10px;">💾 Response saved to state path: <strong>${statePath}</strong></div>` : ''}
+                    ${mappingResults.length > 0 ? `
+                        <div style="color: #9b59b6; margin-top: 10px;">🔗 <strong>Field Mappings Applied:</strong></div>
+                        ${mappingResults.map(mapping => `
+                            <div style="font-size: 12px; margin: 3px 0; padding: 3px 8px; background: #f8f9fa; border-radius: 4px;">
+                                <strong>${mapping.from}</strong> → <strong>${mapping.to}</strong>: 
+                                <span style="color: #2c3e50;">${JSON.stringify(mapping.value)}</span>
+                            </div>
+                        `).join('')}
+                    ` : ''}
+                `;
+                
+                // Update state display if response was saved or field mappings were applied
+                if (statePath || mappingResults.length > 0) {
+                    console.log('🔄 Updating state display...');
+                    console.log('Current state after mappings:', currentState);
+                    updateStateDisplay();
+                }
+                
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function clearRequestForm() {
+            document.getElementById('http-url').value = 'https://jsonplaceholder.typicode.com/posts/1';
+            document.getElementById('http-method').value = 'GET';
+            document.getElementById('http-headers').value = '';
+            document.getElementById('http-body').value = '';
+            document.getElementById('auth-type').value = '';
+            document.getElementById('auth-token').value = '';
+            document.getElementById('auth-username').value = '';
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-key').value = '';
+            document.getElementById('auth-value').value = '';
+            document.getElementById('state-save-path').value = 'api.response';
+            clearAllMappings();
+            toggleAuthFields();
+            
+            const output = document.getElementById('http-output');
+            output.innerHTML = 'Configure and execute HTTP requests...';
+        }
+
+        function loadJSONPlaceholderExample() {
+            document.getElementById('http-url').value = 'https://jsonplaceholder.typicode.com/users/1';
+            document.getElementById('http-method').value = 'GET';
+            document.getElementById('http-headers').value = JSON.stringify({
+                'Accept': 'application/json',
+                'User-Agent': 'HaloTool-Demo/1.0'
+            }, null, 2);
+            document.getElementById('http-body').value = '';
+            document.getElementById('auth-type').value = '';
+            document.getElementById('state-save-path').value = 'examples.user';
+            clearAllMappings();
+            toggleAuthFields();
+        }
+
+        function loadPostExample() {
+            document.getElementById('http-url').value = 'https://jsonplaceholder.typicode.com/posts';
+            document.getElementById('http-method').value = 'POST';
+            document.getElementById('http-headers').value = JSON.stringify({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }, null, 2);
+            document.getElementById('http-body').value = JSON.stringify({
+                title: 'HaloTool Demo Post',
+                body: 'This is a test post created using HaloTool',
+                userId: 1
+            }, null, 2);
+            document.getElementById('auth-type').value = '';
+            document.getElementById('state-save-path').value = 'examples.newPost';
+            clearAllMappings();
+            toggleAuthFields();
+        }
+
+        function loadFieldMappingExample() {
+            document.getElementById('http-url').value = 'https://jsonplaceholder.typicode.com/users/1';
+            document.getElementById('http-method').value = 'GET';
+            document.getElementById('http-headers').value = JSON.stringify({
+                'Accept': 'application/json'
+            }, null, 2);
+            document.getElementById('http-body').value = '';
+            document.getElementById('auth-type').value = '';
+            document.getElementById('state-save-path').value = 'api.fullResponse';
+            
+            // Set up field mappings in the UI
+            const mappings = [
+                {"from": "$.address.city", "to": "form.address.city"},
+                {"from": "$.address.street", "to": "form.address.street"},
+                {"from": "$.address.suite", "to": "form.address.suite"},
+                {"from": "$.company.name", "to": "form.company.name"},
+                {"from": "$.company.catchPhrase", "to": "form.company.slogan"},
+                {"from": "$.name", "to": "form.user.fullName"},
+                {"from": "$.username", "to": "form.user.username"},
+                {"from": "$.email", "to": "form.user.email"},
+                {"from": "$.phone", "to": "form.user.phone"},
+                {"from": "$.website", "to": "form.user.website"}
+            ];
+            setMappingsInUI(mappings);
+            toggleAuthFields();
+        }
+
+        // Demo functions
+        async function quickGet() {
+            const url = document.getElementById('api-url').value;
+            const output = document.getElementById('api-output');
+            
+            try {
+                output.innerHTML = '<div style="color: #f39c12;">Loading...</div>';
+                const result = await haloTool.get(url);
+                output.innerHTML = `<div style="color: #27ae60;">✅ Success!</div><pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function quickPost() {
+            const url = document.getElementById('api-url').value;
+            const output = document.getElementById('api-output');
+            
+            try {
+                output.innerHTML = '<div style="color: #f39c12;">Loading...</div>';
+                const result = await haloTool.post(url, { message: 'Hello from haloTool!', timestamp: Date.now() });
+                output.innerHTML = `<div style="color: #27ae60;">✅ POST Success!</div><pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function quickGetWithState() {
+            const url = document.getElementById('api-url').value;
+            const output = document.getElementById('api-output');
+            
+            try {
+                output.innerHTML = '<div style="color: #f39c12;">Loading...</div>';
+                const result = await haloTool.get(url, 'apiData');
+                output.innerHTML = `<div style="color: #27ae60;">✅ Success! Data saved to state.apiData</div><pre>${JSON.stringify(result, null, 2)}</pre>`;
+                updateStateDisplay();
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function createServerTool() {
+            const output = document.getElementById('tool-output');
+            
+            try {
+                output.innerHTML = '<div style="color: #f39c12;">Creating tool...</div>';
+                
+                const toolId = await haloTool.createServerTool({
+                    id: `demo_server_tool_${Date.now()}`,
+                    name: 'Demo Server Tool',
+                    description: 'A demonstration server tool',
+                    url: 'https://jsonplaceholder.typicode.com/posts/{{$.postId}}',
+                    method: 'GET',
+                    assignments: [{
+                        source: 'response',
+                        valuePath: '$.title',
+                        statePath: '$.postTitle'
+                    }],
+                    cache: { ttlSec: 300, strategy: 'memory' }
+                });
+
+                output.innerHTML = `<div style="color: #27ae60;">✅ Server tool created with ID: ${toolId}</div>`;
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function createSystemTool() {
+            const output = document.getElementById('tool-output');
+            
+            try {
+                output.innerHTML = '<div style="color: #f39c12;">Creating tool...</div>';
+                
+                const toolId = await haloTool.createSystemTool({
+                    id: `demo_system_tool_${Date.now()}`,
+                    name: 'Demo System Tool',
+                    description: 'A demonstration system tool',
+                    op: 'assign',
+                    path: '$.demo.systemValue',
+                    value: { message: 'Hello from system tool!', created: new Date().toISOString() }
+                });
+
+                output.innerHTML = `<div style="color: #27ae60;">✅ System tool created with ID: ${toolId}</div>`;
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function executeCustomTool() {
+            const output = document.getElementById('tool-output');
+            const tools = haloTool.getAllTools();
+            
+            if (tools.length === 0) {
+                output.innerHTML = '<div style="color: #f39c12;">⚠️ No tools available. Create a tool first!</div>';
+                return;
+            }
+
+            try {
+                const tool = tools[tools.length - 1]; // Get the last created tool
+                output.innerHTML = `<div style="color: #f39c12;">Executing tool: ${tool.name}...</div>`;
+                
+                const context = {
+                    toolId: tool.id,
+                    instanceId: `exec_${Date.now()}`,
+                    startTime: Date.now(),
+                    triggeredBy: 'manual',
+                    state: haloTool.getState()
+                };
+
+                const result = await haloTool.executeTool(tool.id, context);
+                output.innerHTML = `<div style="color: #27ae60;">✅ Tool executed successfully!</div><pre>${JSON.stringify(result, null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function updateState() {
+            const path = document.getElementById('state-path').value;
+            const value = document.getElementById('state-value').value;
+            
+            try {
+                // Try to parse as JSON, otherwise use as string
+                let parsedValue;
+                try {
+                    parsedValue = JSON.parse(value);
+                } catch {
+                    parsedValue = value;
+                }
+                
+                haloTool.updateState(path, parsedValue);
+                updateStateDisplay();
+            } catch (error) {
+                alert(`Error updating state: ${error.message}`);
+            }
+        }
+
+        function getState() {
+            updateStateDisplay();
+        }
+
+        function clearState() {
+            haloTool.setState({});
+            updateStateDisplay();
+        }
+
+        function updateStateDisplay() {
+            const display = document.getElementById('state-display');
+            const state = haloTool.getState();
+            console.log('State:', state);
+            display.textContent = JSON.stringify(state, null, 2);
+        }
+
+        async function runWorkflow() {
+            const output = document.getElementById('workflow-output');
+            
+            try {
+                output.innerHTML = '<div style="color: #f39c12;">Running workflow...</div>';
+                
+                const results = await haloTool.workflow([
+                    'fetchData',
+                    'processData', 
+                    'saveResults'
+                ], { workflowId: Date.now() });
+
+                output.innerHTML = `<div style="color: #27ae60;">✅ Workflow completed!</div><pre>${JSON.stringify(results, null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Workflow failed: ${error.message}</div>`;
+            }
+        }
+
+        async function runParallelWorkflow() {
+            const output = document.getElementById('workflow-output');
+            
+            try {
+                output.innerHTML = '<div style="color: #f39c12;">Running parallel workflow...</div>';
+                
+                const results = await Promise.all([
+                    haloTool.workflow(['task1', 'task2']),
+                    haloTool.workflow(['task3', 'task4']),
+                    haloTool.workflow(['task5', 'task6'])
+                ]);
+
+                output.innerHTML = `<div style="color: #27ae60;">✅ Parallel workflows completed!</div><pre>${JSON.stringify(results, null, 2)}</pre>`;
+            } catch (error) {
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Parallel workflow failed: ${error.message}</div>`;
+            }
+        }
+
+        function showMetrics() {
+            const output = document.getElementById('metrics-output');
+            const metrics = haloTool.getMetrics();
+            
+            output.innerHTML = `<div style="color: #3498db;">📊 Current Metrics:</div><pre>${JSON.stringify(metrics, null, 2)}</pre>`;
+        }
+
+        function showTools() {
+            const output = document.getElementById('metrics-output');
+            const tools = haloTool.getAllTools();
+            
+            output.innerHTML = `<div style="color: #3498db;">🔧 Registered Tools (${tools.length}):</div><pre>${JSON.stringify(tools.map(t => ({ id: t.id, name: t.name, type: t.type })), null, 2)}</pre>`;
+        }
+
+        function simulateError() {
+            const output = document.getElementById('metrics-output');
+            
+            try {
+                throw new Error('This is a simulated error for testing');
+            } catch (error) {
+                const errorId = haloTool.captureError(error);
+                output.innerHTML = `<div style="color: #e74c3c;">❌ Error captured with ID: ${errorId}</div><div style="color: #95a5a6;">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize state display
+        setTimeout(() => {
+            updateStateDisplay();
+        }, 1500);
+    </script>
+</body>
+</html>

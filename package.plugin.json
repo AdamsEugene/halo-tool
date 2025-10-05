@@ -1,0 +1,123 @@
+{
+  "name": "halo-tool",
+  "version": "1.0.0",
+  "description": "A powerful, extensible tool execution framework for JavaScript/TypeScript applications",
+  "main": "dist/halo-tool.js",
+  "module": "dist/halo-tool.esm.js",
+  "types": "dist/halo-tool.d.ts",
+  "browser": "dist/halo-tool.browser.js",
+  "files": [
+    "dist/",
+    "src/",
+    "README.md",
+    "PLUGIN_README.md"
+  ],
+  "scripts": {
+    "build": "npm run build:node && npm run build:browser && npm run build:types",
+    "build:node": "rollup -c rollup.config.js --environment TARGET:node",
+    "build:browser": "rollup -c rollup.config.js --environment TARGET:browser",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist",
+    "dev": "rollup -c rollup.config.js --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "clean": "rimraf dist/",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "keywords": [
+    "tools",
+    "plugin",
+    "api",
+    "state-management",
+    "workflow",
+    "resilience",
+    "circuit-breaker",
+    "cache",
+    "retry",
+    "metrics",
+    "tracing",
+    "typescript",
+    "javascript"
+  ],
+  "author": "Halo Tools Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/halo-tools/halo-tool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/halo-tools/halo-tool/issues"
+  },
+  "homepage": "https://github.com/halo-tools/halo-tool#readme",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "jsonpath-plus": "^7.2.0",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
+    "jsonata": "^2.0.0",
+    "lodash": "^4.17.21",
+    "eventemitter3": "^5.0.1",
+    "p-queue": "^7.4.1",
+    "node-cache": "^5.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/lodash": "^4.14.200",
+    "@types/jest": "^29.5.0",
+    "typescript": "^5.3.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "eslint": "^8.50.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "prettier": "^3.1.0",
+    "rollup": "^4.0.0",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-json": "^6.0.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "rimraf": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.5.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/halo-tool.esm.js",
+      "require": "./dist/halo-tool.js",
+      "browser": "./dist/halo-tool.browser.js",
+      "types": "./dist/halo-tool.d.ts"
+    },
+    "./browser": {
+      "import": "./dist/browser.esm.js",
+      "require": "./dist/browser.js",
+      "types": "./dist/browser.d.ts"
+    },
+    "./node": {
+      "import": "./dist/node.esm.js",
+      "require": "./dist/node.js",
+      "types": "./dist/node.d.ts"
+    }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/src", "<rootDir>/tests"],
+    "testMatch": ["**/__tests__/**/*.ts", "**/?(*.)+(spec|test).ts"],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts",
+      "!src/**/*.test.ts"
+    ]
+  }
+}

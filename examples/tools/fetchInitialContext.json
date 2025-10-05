@@ -1,0 +1,64 @@
+{
+  "id": "fetchInitialContext",
+  "type": "server",
+  "name": "Fetch Initial Context",
+  "description": "Fetches initial context data including user profile and organization settings",
+  "triggers": ["onTreeLaunch"],
+  "api": {
+    "url": "https://api.example.com/context?org={{$.context.orgId}}&user={{$.session.userId}}",
+    "method": "GET",
+    "headers": {
+      "x-api-key": "{{$.secrets.partnerKey}}",
+      "Content-Type": "application/json"
+    },
+    "timeoutMs": 4000,
+    "cache": {
+      "ttlSec": 900,
+      "strategy": "memory",
+      "key": "context_{{$.context.orgId}}_{{$.session.userId}}"
+    },
+    "circuitBreaker": {
+      "enabled": true,
+      "failureThreshold": 3,
+      "resetTimeoutMs": 30000
+    },
+    "deduplication": {
+      "enabled": true
+    }
+  },
+  "assignments": [
+    {
+      "source": "response",
+      "valuePath": "$.pricing.rules",
+      "statePath": "$.context.pricing",
+      "required": false,
+      "default": []
+    },
+    {
+      "source": "response",
+      "valuePath": "$.inventory.facets",
+      "statePath": "$.ui.facets",
+      "merge": true
+    },
+    {
+      "source": "response",
+      "valuePath": "$.user.preferences",
+      "statePath": "$.context.userPreferences"
+    }
+  ],
+  "retry": {
+    "max": 2,
+    "strategy": "exponential",
+    "backoffMs": 1000,
+    "retryOn": ["timeout", "5xx", "network"]
+  },
+  "onError": "fallback",
+  "telemetry": {
+    "trackTiming": true,
+    "trackErrors": true,
+    "customMetrics": {
+      "responseSize": "$.response.size",
+      "itemCount": "$.inventory.facets.length"
+    }
+  }
+}

@@ -1,0 +1,192 @@
+flowchart TD
+    Start([Widget Rendering Initiated]) --> LoadManifest[Load Widget Manifest]
+    
+    LoadManifest --> ParseManifest[Parse Widget Configuration]
+    ParseManifest --> ValidateSchema[Validate Props Schema]
+    
+    ValidateSchema --> CheckCategory{Widget Category?}
+    
+    CheckCategory -->|input| InputWidget[Input Widget]
+    CheckCategory -->|collection| CollectionWidget[Collection Widget]
+    CheckCategory -->|search| SearchWidget[Search Widget]
+    CheckCategory -->|map| MapWidget[Map Widget]
+    CheckCategory -->|container| ContainerWidget[Container Widget]
+    CheckCategory -->|visualization| VisualizationWidget[Visualization Widget]
+    
+    InputWidget --> InitWidget[Initialize Widget Instance]
+    CollectionWidget --> InitWidget
+    SearchWidget --> InitWidget
+    MapWidget --> InitWidget
+    ContainerWidget --> InitWidget
+    VisualizationWidget --> InitWidget
+    
+    InitWidget --> CheckDependencies{Has Dependencies?}
+    
+    CheckDependencies -->|Yes| RegisterDeps[Register State Dependencies]
+    CheckDependencies -->|No| MountWidget[Mount Widget]
+    
+    RegisterDeps --> WatchPaths[Watch JSONPath Dependencies]
+    WatchPaths --> MountWidget
+    
+    MountWidget --> LifecycleMount[onBeforeMount Hook]
+    LifecycleMount --> CheckDataSource{Has Data Sources?}
+    
+    CheckDataSource -->|Yes| DataSourceType{Data Source Trigger?}
+    CheckDataSource -->|No| RenderWidget[Render Widget]
+    
+    DataSourceType -->|onMount| ExecuteOnMount[Execute Tool on Mount]
+    DataSourceType -->|onChange| RegisterOnChange[Register for Change Events]
+    DataSourceType -->|onBlur| RegisterOnBlur[Register for Blur Events]
+    DataSourceType -->|manual| WaitManualTrigger[Wait for Manual Trigger]
+    
+    ExecuteOnMount --> CheckDebounce{Has Debounce?}
+    RegisterOnChange --> WaitUserInput[Wait for User Input]
+    RegisterOnBlur --> WaitUserBlur[Wait for Blur Event]
+    WaitManualTrigger --> WaitTrigger[Wait for Manual Call]
+    
+    CheckDebounce -->|Yes| DebounceRequest[Debounce Request]
+    CheckDebounce -->|No| CheckMinInput[Check Min Input Length]
+    
+    DebounceRequest --> CheckMinInput
+    CheckMinInput --> MinInputMet{Min Length Met?}
+    
+    MinInputMet -->|No| SkipRequest[Skip Tool Execution]
+    MinInputMet -->|Yes| ExecuteTool[Execute Associated Tool]
+    
+    WaitUserInput --> UserChanges[User Makes Changes]
+    UserChanges --> CheckDebounce
+    
+    WaitUserBlur --> UserBlurs[User Blurs Field]
+    UserBlurs --> ExecuteTool
+    
+    WaitTrigger --> ManualCall[Manual Tool Call]
+    ManualCall --> ExecuteTool
+    
+    ExecuteTool --> ToolExecution[Tool Executes - See Tools Flow]
+    ToolExecution --> ToolResponse{Tool Response}
+    
+    ToolResponse -->|Success| MapToOptions[Map Response to Options/Value]
+    ToolResponse -->|Error| HandleToolError[Handle Tool Error]
+    
+    MapToOptions --> UpdateWidgetState[Update Widget State]
+    HandleToolError --> ShowErrorState[Show Error State]
+    
+    UpdateWidgetState --> CheckCache{Cache Results?}
+    CheckCache -->|Yes| StoreCache[Store in Widget Cache]
+    CheckCache -->|No| SkipWidgetCache[Skip Caching]
+    
+    StoreCache --> RenderWidget
+    SkipWidgetCache --> RenderWidget
+    SkipRequest --> RenderWidget
+    ShowErrorState --> RenderWidget
+    
+    RenderWidget --> CheckPerformance{Performance Options?}
+    
+    CheckPerformance -->|Virtual Scroll| EnableVirtual[Enable Virtual Scrolling]
+    CheckPerformance -->|Lazy Load| EnableLazy[Enable Lazy Loading]
+    CheckPerformance -->|Batch| BatchRender[Batch Rendering]
+    CheckPerformance -->|None| DirectRender[Direct Render]
+    
+    EnableVirtual --> RenderOptimized[Render with Optimization]
+    EnableLazy --> RenderOptimized
+    BatchRender --> RenderOptimized
+    DirectRender --> RenderOptimized
+    
+    RenderOptimized --> ApplyA11y[Apply Accessibility]
+    ApplyA11y --> SetupValidation[Setup Validation Rules]
+    
+    SetupValidation --> ValidationRules{Has Validation?}
+    ValidationRules -->|Required| AddRequired[Add Required Rule]
+    ValidationRules -->|Custom| AddCustom[Add Custom Rules]
+    ValidationRules -->|None| NoValidation[No Validation]
+    
+    AddRequired --> BindEvents[Bind Widget Events]
+    AddCustom --> BindEvents
+    NoValidation --> BindEvents
+    
+    BindEvents --> EventTypes{Event Handlers}
+    EventTypes --> OnChange[onChange Handler]
+    EventTypes --> OnBlur[onBlur Handler]
+    EventTypes --> OnFocus[onFocus Handler]
+    EventTypes --> OnSubmit[onSubmit Handler]
+    
+    OnChange --> UserInteraction[User Interacts]
+    OnBlur --> UserInteraction
+    OnFocus --> UserInteraction
+    OnSubmit --> UserInteraction
+    
+    UserInteraction --> UpdateValue[Update Value Path]
+    UpdateValue --> ValidateInput{Run Validation?}
+    
+    ValidateInput -->|Yes| RunValidation[Execute Validation Rules]
+    ValidateInput -->|No| UpdateState
+    
+    RunValidation --> ValidationResult{Valid?}
+    ValidationResult -->|Yes| UpdateState[Update State Store]
+    ValidationResult -->|No| ShowErrors[Show Validation Errors]
+    
+    ShowErrors --> UpdateFormErrors[Update form.field.errors]
+    UpdateFormErrors --> WaitCorrection[Wait for User Correction]
+    WaitCorrection --> UserInteraction
+    
+    UpdateState --> CheckDependents{Has Dependent Widgets?}
+    
+    CheckDependents -->|Yes| NotifyDependents[Notify Dependent Widgets]
+    CheckDependents -->|No| CompleteUpdate[Complete Update]
+    
+    NotifyDependents --> TriggerRerender[Trigger Dependent Re-render]
+    TriggerRerender --> DependentUpdate[Dependent Widget Updates]
+    
+    DependentUpdate --> ClearStaleData[Clear Stale Selections]
+    ClearStaleData --> RefetchData[Re-fetch Dependent Data]
+    RefetchData --> ExecuteTool
+    
+    CompleteUpdate --> UpdateMetrics[Update Widget Metrics]
+    UpdateMetrics --> TrackInteraction[Track User Interaction]
+    
+    TrackInteraction --> MetricsCollect[Collect: Render Time, Interactions, Errors]
+    MetricsCollect --> CheckErrors{Error Boundary?}
+    
+    CheckErrors -->|Error Occurred| ErrorBoundary[Error Boundary Catches]
+    CheckErrors -->|No Error| WidgetReady[Widget Ready]
+    
+    ErrorBoundary --> FallbackWidget{Has Fallback?}
+    FallbackWidget -->|Yes| LoadFallback[Load Fallback Widget]
+    FallbackWidget -->|No| ShowErrorUI[Show Error UI]
+    
+    LoadFallback --> InitWidget
+    ShowErrorUI --> WidgetError[Widget in Error State]
+    
+    WidgetReady --> WaitNextAction[Wait for Next Action]
+    WaitNextAction --> NextAction{Next Action?}
+    
+    NextAction -->|User Input| UserInteraction
+    NextAction -->|State Change| StateChanged[External State Changed]
+    NextAction -->|Unmount| UnmountWidget[Unmount Widget]
+    
+    StateChanged --> CheckWatched{Watching This Path?}
+    CheckWatched -->|Yes| TriggerUpdate[Trigger Widget Update]
+    CheckWatched -->|No| IgnoreChange[Ignore Change]
+    
+    TriggerUpdate --> CheckDataSource
+    IgnoreChange --> WaitNextAction
+    
+    UnmountWidget --> OnBeforeUnmount[onBeforeUnmount Hook]
+    OnBeforeUnmount --> CleanupEvents[Cleanup Event Listeners]
+    CleanupEvents --> CleanupCache[Clear Widget Cache]
+    CleanupCache --> ReleaseMemory[Release Memory]
+    ReleaseMemory --> End([Widget Unmounted])
+    
+    WidgetError --> End
+    
+    %% Styling
+    style Start fill:#e1f5fe
+    style End fill:#e1f5fe
+    style InitWidget fill:#f3e5f5
+    style ExecuteTool fill:#fce4ec
+    style UpdateState fill:#c8e6c9
+    style RenderWidget fill:#fff3e0
+    style ErrorBoundary fill:#ffccbc
+    style ValidationResult fill:#ffebee
+    style CheckPerformance fill:#e8f5e9
+    style MetricsCollect fill:#e3f2fd

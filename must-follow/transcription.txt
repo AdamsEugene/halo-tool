@@ -1,0 +1,97 @@
+Halo is an AI platform designed to be part of a larger solution in enterprise software, bringing voice and text chatbot interaction and genai analysis against curated, hierarchically organized, domain-specific knowledge.  We have extended the solution to allow for the generation of complex decision trees and input wizards for enhanced interactions during chat conversations.  
+
+we are now considering improving the solution to allow for a richer experience with the generated decision trees and wizards, by introducing tools and widgets. Tools will be APIs that are invoked when a given decision tree launches or when the user lands on or exits a specific page. Widgets will be interface elements with Javascript behaviors and frequently tied to APIs (Google maps address search, progressive search input fields, dropdowns populated by API, etc).
+
+This is a discussion we had with the engineering team building the decision tree technology.  Convert this into a document that they can use as a roadmap for analysis. Provide specific examples based upon the concepts in ElevenLabs with Tools (webhook tools and client tools) as to how this could be accomplished
+
+Describe user stories "As the engineer, I want to create a webhook tool, which will be executed upon launch of the decision tree to augment the injected state with additional information fetched by API" and similar tools, including how the engineer would create an API powered collection of buttons, checkboxes, radio button, dropdown options, how an input field widget could be created to become an API-powered progressive search box.
+
+Then describe how metadata could be appended to the widgets, allowing the GenAI that builds the decision tree to select the correct tool based upon the decision tree requirements provided by the user.  
+
+describe the mechanism for maintaining state from launch through the page-by-page and element-by-element interactions.
+
+Describe the architectural approach would could be considered for this solution.
+
+Describe a roadmap by which concrete, potentially shippable components of this solution could be delivered miletstone-by-mllestone.
+
+do not estimate timelines or complexity.
+
+Transcript of huddle in Adams on Sep 26 from 8:01 PM to 8:19 PM Monrovia, Reykjavik.
+This transcript is auto-generated, so some information may be inaccurate. It won’t be surfaced in search results.
+@Kenn Palm [25:39]: Picture. OK, so guys, last week we talked about moving towards
+@Adams [25:43]: Hm
+@Kenn Palm [25:48]: The migration of JavaScript. To be more abstract. And the creation of widgets as an abstraction. And also the ability to inject arbitrary JavaScript on a on a decision tree, and on a page. did, did you guys get any progress in that area?
+@Adams [26:18]: We, we sent to your room. I don't know if So we, we, we, We, yeah, so we're able to Inject JavaScript into like a page. So when a page you're able to run a telescope on the page and able to also make
+@Kenn Palm [26:34]: Oh yes, I saw that video. Yeah, yeah, yeah. OK, good. I remember. OK, so yes, I saw that you had JavaScript injection, arbitrary JavaScript injection, which is cool And obviously later guys, we are gonna have an AI assistant generate that JavaScript for you on the page, but
+@Kenn Palm [26:54]: The most critical thing we need Is to take that a step further As an abstraction for widgets. And a widget, for example, on the, oh, well, I guess you guys haven't really worked on boat bots, so you haven't seen it.
+@Kenn Palm [27:15]: But imagine you you're building an AI bot for a car dealership. And they have a database of all the makes and models they have on the lot. Then they would create a widget that is a dropdown for make. That dropdown would be populated by an API call to their back end to get the list of all makes they have available on their watch.
+@Kenn Palm [27:41]: And then they, they would also have a dropdown for model And that would pull the model in that's tied to the make. Now I believe there would be two ways that that would be done. There would be independent widgets and dependent widgets. And I believe that you need to create
+@Kenn Palm [28:03]: Something very similar To what happens on Seven Laps Where you're able to create variables in context, and then use them. Between the widgets.
+@Kenn Palm [28:20]: So If I go to Look up number here Lookup member is a widget. It's tied to an API. You define the headers
+@Kenn Palm [28:36]: You define The parameters. For it, for the The input to the widget And then you provide The data it's extraction. So that you have dynamic variables.
+@Kenn Palm [28:55]: And you can assign The output of this JSON path to this variable. If you do that, then you can do what these guys do. Which is allow inputs to all or outputs from one to be inputs to another.
+@Kenn Palm [29:16]: By selecting the dynamic variables. So what we really need, and this may not be something you do in one weekend. But what we really need is a collection of widgets That the, when you, when the system is generating
+@Kenn Palm [29:35]: The dynamic decision tree. It takes into account the available widgets. And would automatically select the correct widget Or the user could specify which specific widget they want to use. The widgets will have metadata that helps the AI select which widget to use.
+@Kenn Palm [29:59]: And so what I think we end up with, now that you have JavaScript injection You can take it a step further to also allow For This abstraction of widgets Widgets can be placed on pages on the decision tree.
+@Kenn Palm [30:18]: Widgets have inputs. That are tied to the form on the page. Or tied to the data that's being collected so far on the widget, or tied to the data that was sent to the widget when it was launched.
+@Kenn Palm [30:38]: Or tied to dynamic variables that were acquired from other APL homes.
+@Adams [30:44]: OK.
+@Kenn Palm [30:45]: Does this make sense at all, guys?
+@Adams [30:50]: It makes sense. I think it seems a lot.
+@Kenn Palm [30:53]: Yeah, it is a lot. It is not small. I totally get it. It's not small. It's very ambitious And It's transformative. For the industry. It it's a big deal.
+@Adams [31:10]: Can, can you do this for us? Probably maybe I prepare documents like you used to do, because it seems, it seems a lot, it seems a lot. So maybe if you get a.
+@Kenn Palm [31:17]: Well, yeah, but that's why I'm recording this, because we're gonna recreate a document from it, and you guys will have a nice normal document just from this recording.
+@Adams [31:23]: Yes All right
+@Kenn Palm [31:27]: So what's really important is for us to capture Enough knowledge in this discussion to be able to create the document And most likely By the way, I should get you guys chat GPT 5 Pro so that you could use it
+@Kenn Palm [31:47]: Because most likely a good amount of what we're talking about, you could use JenAI assistants to build out a lot of it. At least the architectural analysis. So let me start by describing how it will be used
+@Kenn Palm [32:05]: And then I will describe some of the technical Constraints and requirements. And I will put it in the context of what we have at 11 laps. So that The Gen AI can build a nice
+@Kenn Palm [32:22]: Document So let's start by giving it some context. We're building a system That generates A decision tree with dynamic forms Based on forms IO
+@Kenn Palm [32:38]: So that we can integrate complex user experiences into a chat experience. We already have that, and it works great. The solution generates a form, a collection of forms with the orchestration to navigate from page to page on the collection of forms based upon what the user requests. For example, the user might request, give me an enrollment form with the following input fields, then if the user chooses quick roll, take them to this page with these field
+@Kenn Palm [33:20]: S and then this page with these fields, but if the user requests detailed enrollment, then take him down this other path, just as an example. So we have that, it works brilliantly. When we want, we can see the dynamic form pop open.
+@Kenn Palm [33:40]: And it has all the fields we want. However, They're just fields. They're not tied to APIs. And they They can't pass information from one dynamic field to the other to influence the behavior of the other fields.
+@Kenn Palm [34:01]: And that's what we want A good example is what I said before If we were to build a decision tree For somebody shopping for cars. Well, the dealership only has certain makes, models, and years on their floor.
+@Kenn Palm [34:20]: So they would have an API that delivers that information. And they would have widgets in their system that they have defined Which allow the user to select From the available makes.
+@Kenn Palm [34:36]: And then The the filter, the drop down for models would be, would be populated based upon the input from the make. And then the filter for year would be populated.
+@Kenn Palm [34:53]: And and the dropdown by API pulse, and this would be done, I believe, By number one, allowing a decision tree to receive as input an initial state, and then maintain states going from page to page through the decision tree.
+@Kenn Palm [35:15]: And the state is quite simply a large Jason With, you know, ob, you know, with key value pairs essentially. And Then when you have when you have input fields, On the decision tree, those input fields
+@Kenn Palm [35:33]: Will correlate to the states, so that as the user populates the decision tree, either clicking specific buttons, filling specific fields That state gets built up. It gets populated and then we have widgets
+@Kenn Palm [35:53]: And widgets have input values. They, they might have APIs, or they might just have JavaScript. And they have They have outputs For example, it's a dropdown, and the user selects a specific value.
+@Kenn Palm [36:11]: Now that field has a value. And that field value gets tied to the current state. Or the dropdown is a widget. That widget is tied to an API The API, inputs, just like with 11 laps, you have tools, and the tools have a URL.
+@Kenn Palm [36:35]: And a method, and all of the parameters to define the headers and the inputs and the outputs. So it's very similar. And so the user defines this is my API Or or this is the the tool, the to the widget, the widget is tied to this API endpoint.
+@Kenn Palm [36:56]: And here's the payload that API expects. The experience should be very much like The 11 labs Experience for defining a tool. You can define as many properties as you want. Each property can be atomic, or it can be an array.
+@Kenn Palm [37:14]: Or it can be an object This allows for nesting, so that you can have arbitrary depths for the inputs. Then you Define the output. The output is either the value of the element or it is the output that you get from the API call.
+@Kenn Palm [37:37]: And you do a mapping of the Jason path to the variable that's in the state. So I know this is a lot. I know this isn't a small project. I also know that you guys can do it.
+@Kenn Palm [37:54]: If you understand the goal of the project. Is to have collections of Of API powered or JavaScript-powered inputs controls or user experience elements, which are selected from a library by the AI engine when it's building the form.
+@Kenn Palm [38:18]: Or the user specifies which ones they want on a given page. I think you'll be able to take this recording. And analyze it, brainstorm it among yourself, beat it up in, in AI and then have another meeting with me.
+@Kenn Palm [38:37]: With your ideas about how this could be structured. What do you think?
+@Adams [38:46]: Yes, yes, I, I think, I think it's good. They are good now.
+@Kenn Palm [38:51]: I mean, you have to admit it's a very cool project, is it not?
+@Adams [38:54]: Yeah, it's very, very, very cool. Yes, it's, it's very interesting for this.
+@Kenn Palm [38:56]: It I would be thrilled if you have first results in 4 weeks.
+@Adams [38:59]: OK, so Oh, we would, we would. OK, so I came in, in, in, in this case, then it meaning each each page will make a new request to the AI for regeneration.
+@Adams [39:16]: Since yes.
+@Kenn Palm [39:16]: Sometimes If the cage has a it has a tool that that calls an API then it would. But maybe it doesn't, you know.
+@Adams [39:25]: Sure
+@Kenn Palm [39:27]: And, and what can happen is, now we're talking about passing state 2
+@Adams [39:27]: Yes.
+@Kenn Palm [39:34]: The decision tree
+@Adams [39:37]: Mhm.
+@Kenn Palm [39:37]: And then building state on each page of the decision tree. What that implies is that you can associate Jason paths of your state. To input elements. So that when the user enters the value,
+@Kenn Palm [39:55]: That value automatically populates the correct JSON path in the state. Does that make sense?
+@Adams [40:02]: Yes, it makes sense It makes sense.
+@Kenn Palm [40:07]: Now, I do need to get you guys GPT 5. that's gonna be a key For our success Because if you take GPT 5 And you say analyze this project in the context of how 11 labs does tools
+@Kenn Palm [40:27]: I think You will find that it does an awful lot of the analysis for you. And I think you would actually be shocked.
+@Adams [40:35]: Mhm
+@Kenn Palm [40:38]: To see How amazing the code would be. If you give it your current code base. And you give it the description when you have a really robust description. I think you would be shocked how close to correct the code base is.
+@Kenn Palm [40:57]: Now what I'm doing personally, and maybe this isn't the right way to do it, but it works really well for me. It's super simple. Let me show you.
+@Adams [41:04]: It's
+@Kenn Palm [41:07]: I use This simple little batch script right here that I'll give you.
+@Adams [41:13]: In
+@Kenn Palm [41:13]: And all it does Is walks your your current directory. And concatenates all of the code files. Except for the ones you exclude Into a single text file.
+@Adams [41:29]: Mhm
+@Kenn Palm [41:30]: And I give that as input along with this recording, 2 GPT 5 Pro. And the results Are quite stunning actually. I have to tell you. Let's do this, please. I am going to be online very early tomorrow.
+@Kenn Palm [41:49]: Because I have an appointment very early. So, how about before you guys go offline, Send me a zip archive of your current codebase.
+@Kenn Palm [42:06]: And before you get up, I'm gonna try to have an extremely robust document describing what I envisioned. And maybe even Some prototype from GPT of how possibly it could be done. You don't have to use any of it, but it might help you to get ideas.
+@Adams [42:33]: Sure, sure. All right. OK
+@Kenn Palm [42:36]: You Beautiful. I'm gonna turn off the recording.
+@Adams [42:37]: OK.

@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halo Tools System - Interactive Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 800px;
+        }
+
+        .left-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .right-panel {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .tool-demo {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .tool-demo.server {
+            border-left-color: #e74c3c;
+        }
+
+        .tool-demo.client {
+            border-left-color: #9b59b6;
+        }
+
+        .tool-demo.system {
+            border-left-color: #f39c12;
+        }
+
+        .tool-demo h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .tool-demo p {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn.server {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn.client {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        }
+
+        .btn.system {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .output-area {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .state-viewer {
+            background: #34495e;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .tabs {
+            display: flex;
+            background: #ecf0f1;
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: #bdc3c7;
+            color: #2c3e50;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .workflow-step {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .workflow-step.active {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .workflow-step.completed {
+            border-color: #27ae60;
+            background: #e8f5e9;
+        }
+
+        .step-number {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: #3498db;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .workflow-step.completed .step-number {
+            background: #27ae60;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .log-entry.info {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .log-entry.success {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+
+        .log-entry.error {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .log-entry.warning {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .loading {
+            animation: pulse 1s infinite;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #27ae60;
+        }
+
+        .notification.error {
+            background: #e74c3c;
+        }
+
+        .notification.info {
+            background: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Halo Tools System</h1>
+            <p>Interactive Demo - Server Tools • Client Tools • System Tools • State Management</p>
+        </div>
+
+        <div class="demo-grid">
+            <div class="left-panel">
+                <div class="section">
+                    <h2>🚀 Quick Actions</h2>
+                    
+                    <div class="tool-demo server">
+                        <h3>Server Tool Demo</h3>
+                        <p>Fetch data from external APIs with resilience features</p>
+                        <button class="btn server" onclick="executeServerTool()">Fetch User Data</button>
+                        <button class="btn server" onclick="executeServerToolWithError()">Test Error Handling</button>
+                    </div>
+
+                    <div class="tool-demo client">
+                        <h3>Client Tool Demo</h3>
+                        <p>Execute browser-based actions and UI manipulations</p>
+                        <button class="btn client" onclick="executeClientTool('openModal')">Open Modal</button>
+                        <button class="btn client" onclick="executeClientTool('focusElement')">Focus Input</button>
+                        <button class="btn client" onclick="executeClientTool('scrollToTop')">Scroll to Top</button>
+                    </div>
+
+                    <div class="tool-demo system">
+                        <h3>System Tool Demo</h3>
+                        <p>Perform state operations and transformations</p>
+                        <button class="btn system" onclick="executeSystemTool('assign')">Assign Value</button>
+                        <button class="btn system" onclick="executeSystemTool('merge')">Merge Data</button>
+                        <button class="btn system" onclick="executeSystemTool('transform')">Transform Data</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>🔄 Workflow Demo</h2>
+                    <button class="btn success" onclick="runCompleteWorkflow()">Run Car Shopping Flow</button>
+                    <button class="btn danger" onclick="clearWorkflow()">Clear Workflow</button>
+                    
+                    <div id="workflow-steps" style="margin-top: 20px;">
+                        <!-- Workflow steps will be populated here -->
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📊 System Metrics</h2>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="tools-executed">0</div>
+                            <div class="metric-label">Tools Executed</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="avg-execution-time">0ms</div>
+                            <div class="metric-label">Avg Execution Time</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="success-rate">100%</div>
+                            <div class="metric-label">Success Rate</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="cache-hits">0</div>
+                            <div class="metric-label">Cache Hits</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('output')">Console Output</div>
+                    <div class="tab" onclick="showTab('state')">State Viewer</div>
+                    <div class="tab" onclick="showTab('tools')">Tool Registry</div>
+                    <div class="tab" onclick="showTab('config')">Configuration</div>
+                </div>
+
+                <div id="output-tab" class="tab-content active">
+                    <div class="output-area" id="console-output">
+                        <div class="log-entry info">🚀 Halo Tools System initialized</div>
+                        <div class="log-entry info">📝 Tool Registry loaded with 12 tools</div>
+                        <div class="log-entry info">🔧 State Manager ready</div>
+                        <div class="log-entry success">✅ System ready for tool execution</div>
+                    </div>
+                </div>
+
+                <div id="state-tab" class="tab-content">
+                    <div class="state-viewer" id="state-display">
+                        <!-- State will be displayed here -->
+                    </div>
+                </div>
+
+                <div id="tools-tab" class="tab-content">
+                    <div id="tool-registry">
+                        <!-- Tool registry will be displayed here -->
+                    </div>
+                </div>
+
+                <div id="config-tab" class="tab-content">
+                    <div class="form-group">
+                        <label>API Base URL</label>
+                        <input type="text" id="api-base-url" value="https://api.example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Cache Strategy</label>
+                        <select id="cache-strategy">
+                            <option value="memory">Memory</option>
+                            <option value="localStorage">Local Storage</option>
+                            <option value="sessionStorage">Session Storage</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Circuit Breaker Threshold</label>
+                        <input type="number" id="circuit-threshold" value="3" min="1" max="10" />
+                    </div>
+                    <div class="form-group">
+                        <label>Request Timeout (ms)</label>
+                        <input type="number" id="request-timeout" value="5000" min="1000" max="30000" />
+                    </div>
+                    <button class="btn" onclick="updateConfiguration()">Update Configuration</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Client Tool Demo -->
+    <div id="demo-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>🎉 Client Tool Demo</h2>
+            <p>This modal was opened by a Client Tool! Client tools can:</p>
+            <ul style="margin: 15px 0; padding-left: 20px;">
+                <li>Open and close modals</li>
+                <li>Focus form elements</li>
+                <li>Scroll to specific elements</li>
+                <li>Set values in form fields</li>
+                <li>Execute custom JavaScript functions</li>
+            </ul>
+            <button class="btn" onclick="closeModal()">Close Modal</button>
+        </div>
+    </div>
+
+    <!-- Hidden input for focus demo -->
+    <input type="text" id="focus-demo-input" style="position: absolute; top: -1000px;" placeholder="This input was focused by a Client Tool!" />
+
+    <script>
+        // Initialize the Halo Tools System Demo
+        class HaloToolsDemo {
+            constructor() {
+                this.state = {
+                    session: {
+                        treeId: 'demo-2024-01-01',
+                        userId: 'demo-user',
+                        startedAt: new Date().toISOString()
+                    },
+                    context: {
+                        orgId: 'demo-org',
+                        locale: 'en-US',
+                        timezone: 'America/Los_Angeles'
+                    },
+                    form: {
+                        make: { value: null, errors: [], touched: false },
+                        model: { value: null, errors: [], touched: false },
+                        year: { value: null, errors: [] }
+                    },
+                    ui: {
+                        make: { options: [], loading: false, error: null },
+                        model: { options: [], loading: false, error: null },
+                        year: { options: [], loading: false, error: null }
+                    },
+                    tools: {
+                        lastRun: {},
+                        cache: {},
+                        errors: {},
+                        metrics: {
+                            callCounts: {},
+                            avgLatency: {},
+                            errorRates: {}
+                        }
+                    }
+                };
+
+                this.metrics = {
+                    toolsExecuted: 0,
+                    totalExecutionTime: 0,
+                    successCount: 0,
+                    errorCount: 0,
+                    cacheHits: 0
+                };
+
+                this.tools = this.initializeTools();
+                this.updateStateDisplay();
+                this.updateToolRegistry();
+                this.initializeWorkflowSteps();
+            }
+
+            initializeTools() {
+                return {
+                    fetchUserData: {
+                        id: 'fetchUserData',
+                        type: 'server',
+                        name: 'Fetch User Data',
+                        description: 'Fetches user profile data from API',
+                        api: {
+                            url: 'https://jsonplaceholder.typicode.com/users/1',
+                            method: 'GET',
+                            cache: { ttlSec: 300, strategy: 'memory' },
+                            circuitBreaker: { enabled: true, failureThreshold: 3 }
+                        },
+                        assignments: [{
+                            source: 'response',
+                            valuePath: '$.name',
+                            statePath: '$.context.userName'
+                        }]
+                    },
+                    fetchCarMakes: {
+                        id: 'fetchCarMakes',
+                        type: 'server',
+                        name: 'Fetch Car Makes',
+                        description: 'Fetches available car makes',
+                        api: {
+                            url: '/api/makes',
+                            method: 'GET',
+                            cache: { ttlSec: 3600, strategy: 'memory' }
+                        },
+                        assignments: [{
+                            source: 'response',
+                            valuePath: '$.data',
+                            statePath: '$.ui.make.options'
+                        }]
+                    },
+                    openModal: {
+                        id: 'openModal',
+                        type: 'client',
+                        name: 'Open Modal',
+                        description: 'Opens a modal dialog',
+                        client: {
+                            fn: 'openModal',
+                            rollback: { fn: 'closeModal' }
+                        }
+                    },
+                    focusElement: {
+                        id: 'focusElement',
+                        type: 'client',
+                        name: 'Focus Element',
+                        description: 'Focuses a specific element',
+                        client: {
+                            fn: 'focusElement'
+                        }
+                    },
+                    assignValue: {
+                        id: 'assignValue',
+                        type: 'system',
+                        name: 'Assign Value',
+                        description: 'Assigns a value to state path',
+                        system: {
+                            op: 'assign',
+                            path: '$.form.demo.value',
+                            value: 'Demo Value'
+                        }
+                    },
+                    mergeData: {
+                        id: 'mergeData',
+                        type: 'system',
+                        name: 'Merge Data',
+                        description: 'Merges data into existing state',
+                        system: {
+                            op: 'merge',
+                            path: '$.context',
+                            value: { demoFlag: true, timestamp: new Date().toISOString() }
+                        }
+                    },
+                    transformData: {
+                        id: 'transformData',
+                        type: 'system',
+                        name: 'Transform Data',
+                        description: 'Transforms data using JSONata',
+                        system: {
+                            op: 'transform',
+                            path: '$.form.demo',
+                            transform: {
+                                type: 'jsonata',
+                                expression: '{ "transformed": true, "originalValue": value, "timestamp": $now() }'
+                            }
+                        }
+                    }
+                };
+            }
+
+            async executeTool(toolId, options = {}) {
+                const startTime = Date.now();
+                const tool = this.tools[toolId];
+                
+                if (!tool) {
+                    this.logError(`Tool '${toolId}' not found`);
+                    return;
+                }
+
+                this.logInfo(`🔧 Executing ${tool.type} tool: ${tool.name}`);
+                
+                try {
+                    let result;
+                    
+                    switch (tool.type) {
+                        case 'server':
+                            result = await this.executeServerTool(tool, options);
+                            break;
+                        case 'client':
+                            result = await this.executeClientTool(tool, options);
+                            break;
+                        case 'system':
+                            result = await this.executeSystemTool(tool, options);
+                            break;
+                        default:
+                            throw new Error(`Unknown tool type: ${tool.type}`);
+                    }
+
+                    const executionTime = Date.now() - startTime;
+                    this.updateMetrics(toolId, executionTime, true);
+                    this.logSuccess(`✅ Tool '${tool.name}' executed successfully in ${executionTime}ms`);
+                    
+                    return result;
+                } catch (error) {
+                    const executionTime = Date.now() - startTime;
+                    this.updateMetrics(toolId, executionTime, false);
+                    this.logError(`❌ Tool '${tool.name}' failed: ${error.message}`);
+                    throw error;
+                }
+            }
+
+            async executeServerTool(tool, options = {}) {
+                // Simulate API call with realistic timing
+                const delay = options.simulateError ? 2000 : Math.random() * 1000 + 500;
+                
+                this.logInfo(`🌐 Making HTTP ${tool.api.method} request to ${tool.api.url}`);
+                
+                // Check cache first
+                const cacheKey = `${tool.id}_${JSON.stringify(options)}`;
+                if (this.state.tools.cache[cacheKey]) {
+                    this.metrics.cacheHits++;
+                    this.logInfo(`💾 Cache hit for ${tool.name}`);
+                    return this.state.tools.cache[cacheKey];
+                }
+
+                await this.sleep(delay);
+
+                if (options.simulateError) {
+                    throw new Error('Simulated network error');
+                }
+
+                // Simulate successful response
+                let mockResponse;
+                if (tool.id === 'fetchUserData') {
+                    mockResponse = {
+                        id: 1,
+                        name: 'John Doe',
+                        email: 'john@example.com',
+                        phone: '+1-555-0123'
+                    };
+                } else if (tool.id === 'fetchCarMakes') {
+                    mockResponse = {
+                        data: [
+                            { id: 'toyota', name: 'Toyota' },
+                            { id: 'honda', name: 'Honda' },
+                            { id: 'ford', name: 'Ford' },
+                            { id: 'bmw', name: 'BMW' }
+                        ]
+                    };
+                } else {
+                    mockResponse = { success: true, data: 'Mock response' };
+                }
+
+                // Process assignments
+                if (tool.assignments) {
+                    for (const assignment of tool.assignments) {
+                        const value = this.extractValueByPath(mockResponse, assignment.valuePath);
+                        this.setValueByPath(this.state, assignment.statePath, value);
+                        this.logInfo(`📝 Assigned ${assignment.valuePath} → ${assignment.statePath}`);
+                    }
+                }
+
+                // Cache the response
+                if (tool.api.cache) {
+                    this.state.tools.cache[cacheKey] = mockResponse;
+                    this.logInfo(`💾 Cached response for ${tool.name}`);
+                }
+
+                this.updateStateDisplay();
+                return mockResponse;
+            }
+
+            async executeClientTool(tool, options = {}) {
+                this.logInfo(`🖥️ Executing client function: ${tool.client.fn}`);
+
+                switch (tool.client.fn) {
+                    case 'openModal':
+                        document.getElementById('demo-modal').style.display = 'block';
+                        break;
+                    case 'focusElement':
+                        const input = document.getElementById('focus-demo-input');
+                        input.style.position = 'static';
+                        input.style.margin = '10px 0';
+                        input.focus();
+                        setTimeout(() => {
+                            input.style.position = 'absolute';
+                            input.style.top = '-1000px';
+                        }, 3000);
+                        break;
+                    case 'scrollToTop':
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        break;
+                    case 'setValue':
+                        // Simulate setting a value in a form field
+                        this.setValueByPath(this.state, '$.form.demo.value', options.value || 'Client Tool Value');
+                        this.updateStateDisplay();
+                        break;
+                }
+
+                await this.sleep(100); // Simulate brief execution time
+                return { success: true, action: tool.client.fn };
+            }
+
+            async executeSystemTool(tool, options = {}) {
+                this.logInfo(`⚙️ Executing system operation: ${tool.system.op}`);
+
+                switch (tool.system.op) {
+                    case 'assign':
+                        this.setValueByPath(this.state, tool.system.path, tool.system.value);
+                        this.logInfo(`📝 Assigned value to ${tool.system.path}`);
+                        break;
+                    case 'merge':
+                        const currentValue = this.getValueByPath(this.state, tool.system.path);
+                        const mergedValue = { ...currentValue, ...tool.system.value };
+                        this.setValueByPath(this.state, tool.system.path, mergedValue);
+                        this.logInfo(`🔄 Merged data at ${tool.system.path}`);
+                        break;
+                    case 'delete':
+                        this.deleteValueByPath(this.state, tool.system.path);
+                        this.logInfo(`🗑️ Deleted ${tool.system.path}`);
+                        break;
+                    case 'transform':
+                        const originalValue = this.getValueByPath(this.state, tool.system.path);
+                        // Simulate JSONata transformation
+                        const transformedValue = {
+                            transformed: true,
+                            originalValue: originalValue,
+                            timestamp: new Date().toISOString()
+                        };
+                        this.setValueByPath(this.state, tool.system.path, transformedValue);
+                        this.logInfo(`🔄 Transformed data at ${tool.system.path}`);
+                        break;
+                }
+
+                this.updateStateDisplay();
+                await this.sleep(50); // Simulate brief execution time
+                return { success: true, operation: tool.system.op };
+            }
+
+            // Utility methods
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            extractValueByPath(obj, path) {
+                // Simple JSONPath implementation for demo
+                if (path.startsWith('$.')) {
+                    path = path.substring(2);
+                }
+                return path.split('.').reduce((current, key) => current && current[key], obj);
+            }
+
+            getValueByPath(obj, path) {
+                if (path.startsWith('$.')) {
+                    path = path.substring(2);
+                }
+                return path.split('.').reduce((current, key) => current && current[key], obj);
+            }
+
+            setValueByPath(obj, path, value) {
+                if (path.startsWith('$.')) {
+                    path = path.substring(2);
+                }
+                const keys = path.split('.');
+                const lastKey = keys.pop();
+                const target = keys.reduce((current, key) => {
+                    if (!current[key]) current[key] = {};
+                    return current[key];
+                }, obj);
+                target[lastKey] = value;
+            }
+
+            deleteValueByPath(obj, path) {
+                if (path.startsWith('$.')) {
+                    path = path.substring(2);
+                }
+                const keys = path.split('.');
+                const lastKey = keys.pop();
+                const target = keys.reduce((current, key) => current && current[key], obj);
+                if (target) delete target[lastKey];
+            }
+
+            updateMetrics(toolId, executionTime, success) {
+                this.metrics.toolsExecuted++;
+                this.metrics.totalExecutionTime += executionTime;
+                
+                if (success) {
+                    this.metrics.successCount++;
+                } else {
+                    this.metrics.errorCount++;
+                }
+
+                // Update UI
+                document.getElementById('tools-executed').textContent = this.metrics.toolsExecuted;
+                document.getElementById('avg-execution-time').textContent = 
+                    Math.round(this.metrics.totalExecutionTime / this.metrics.toolsExecuted) + 'ms';
+                document.getElementById('success-rate').textContent = 
+                    Math.round((this.metrics.successCount / this.metrics.toolsExecuted) * 100) + '%';
+                document.getElementById('cache-hits').textContent = this.metrics.cacheHits;
+            }
+
+            updateStateDisplay() {
+                const stateDisplay = document.getElementById('state-display');
+                stateDisplay.textContent = JSON.stringify(this.state, null, 2);
+            }
+
+            updateToolRegistry() {
+                const registry = document.getElementById('tool-registry');
+                let html = '';
+                
+                Object.values(this.tools).forEach(tool => {
+                    html += `
+                        <div class="tool-demo ${tool.type}">
+                            <h3>${tool.name} (${tool.type})</h3>
+                            <p>${tool.description}</p>
+                            <small>ID: ${tool.id}</small>
+                        </div>
+                    `;
+                });
+                
+                registry.innerHTML = html;
+            }
+
+            initializeWorkflowSteps() {
+                const steps = [
+                    { id: 1, title: 'Initialize Tree', description: 'Launch decision tree with initial state' },
+                    { id: 2, title: 'Fetch Car Makes', description: 'Load available car makes from API' },
+                    { id: 3, title: 'User Selects Make', description: 'User chooses a car make' },
+                    { id: 4, title: 'Fetch Models', description: 'Load models for selected make' },
+                    { id: 5, title: 'User Selects Model', description: 'User chooses a car model' },
+                    { id: 6, title: 'Validate Selection', description: 'Validate user selections' },
+                    { id: 7, title: 'Complete Flow', description: 'Finalize the car shopping flow' }
+                ];
+
+                const container = document.getElementById('workflow-steps');
+                container.innerHTML = steps.map(step => `
+                    <div class="workflow-step" id="step-${step.id}">
+                        <div class="step-number">${step.id}</div>
+                        <h4>${step.title}</h4>
+                        <p>${step.description}</p>
+                    </div>
+                `).join('');
+            }
+
+            async runCompleteWorkflow() {
+                this.logInfo('🚀 Starting complete car shopping workflow...');
+                
+                const steps = [
+                    { id: 1, action: () => this.initializeWorkflowStep() },
+                    { id: 2, action: () => this.executeTool('fetchCarMakes') },
+                    { id: 3, action: () => this.simulateUserSelection('make', 'toyota') },
+                    { id: 4, action: () => this.fetchModelsForMake('toyota') },
+                    { id: 5, action: () => this.simulateUserSelection('model', 'camry') },
+                    { id: 6, action: () => this.validateSelections() },
+                    { id: 7, action: () => this.completeWorkflow() }
+                ];
+
+                for (const step of steps) {
+                    document.getElementById(`step-${step.id}`).classList.add('active');
+                    await step.action();
+                    await this.sleep(1000);
+                    document.getElementById(`step-${step.id}`).classList.remove('active');
+                    document.getElementById(`step-${step.id}`).classList.add('completed');
+                }
+
+                this.showNotification('Workflow completed successfully!', 'success');
+            }
+
+            async initializeWorkflowStep() {
+                this.logInfo('🎯 Initializing decision tree...');
+                this.state.context.workflowId = 'car-shopping-' + Date.now();
+                this.updateStateDisplay();
+            }
+
+            async simulateUserSelection(field, value) {
+                this.logInfo(`👤 User selected ${field}: ${value}`);
+                this.setValueByPath(this.state, `$.form.${field}.value`, value);
+                this.setValueByPath(this.state, `$.form.${field}.touched`, true);
+                this.updateStateDisplay();
+            }
+
+            async fetchModelsForMake(make) {
+                this.logInfo(`🚗 Fetching models for ${make}...`);
+                // Simulate fetching models
+                const models = {
+                    toyota: ['Camry', 'Corolla', 'Prius', 'RAV4'],
+                    honda: ['Civic', 'Accord', 'CR-V', 'Pilot'],
+                    ford: ['F-150', 'Mustang', 'Explorer', 'Focus'],
+                    bmw: ['3 Series', '5 Series', 'X3', 'X5']
+                };
+                
+                await this.sleep(800);
+                this.setValueByPath(this.state, '$.ui.model.options', 
+                    models[make]?.map(model => ({ id: model.toLowerCase(), name: model })) || []);
+                this.updateStateDisplay();
+            }
+
+            async validateSelections() {
+                this.logInfo('✅ Validating user selections...');
+                const make = this.getValueByPath(this.state, '$.form.make.value');
+                const model = this.getValueByPath(this.state, '$.form.model.value');
+                
+                if (!make || !model) {
+                    throw new Error('Missing required selections');
+                }
+                
+                this.logSuccess('✅ All selections validated successfully');
+            }
+
+            async completeWorkflow() {
+                this.logInfo('🎉 Completing workflow...');
+                this.setValueByPath(this.state, '$.context.workflowCompleted', true);
+                this.setValueByPath(this.state, '$.context.completedAt', new Date().toISOString());
+                this.updateStateDisplay();
+                this.logSuccess('🎉 Car shopping workflow completed!');
+            }
+
+            clearWorkflow() {
+                document.querySelectorAll('.workflow-step').forEach(step => {
+                    step.classList.remove('active', 'completed');
+                });
+                this.logInfo('🧹 Workflow cleared');
+            }
+
+            // Logging methods
+            logInfo(message) {
+                this.addLogEntry(message, 'info');
+            }
+
+            logSuccess(message) {
+                this.addLogEntry(message, 'success');
+            }
+
+            logError(message) {
+                this.addLogEntry(message, 'error');
+            }
+
+            logWarning(message) {
+                this.addLogEntry(message, 'warning');
+            }
+
+            addLogEntry(message, type) {
+                const output = document.getElementById('console-output');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                output.appendChild(entry);
+                output.scrollTop = output.scrollHeight;
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 100);
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(notification), 300);
+                }, 3000);
+            }
+        }
+
+        // Initialize demo
+        let demo;
+        document.addEventListener('DOMContentLoaded', () => {
+            demo = new HaloToolsDemo();
+        });
+
+        // Global functions for UI interaction
+        function executeServerTool() {
+            demo.executeTool('fetchUserData');
+        }
+
+        function executeServerToolWithError() {
+            demo.executeTool('fetchUserData', { simulateError: true }).catch(() => {
+                // Error already logged by demo system
+            });
+        }
+
+        function executeClientTool(action) {
+            const toolMap = {
+                'openModal': 'openModal',
+                'focusElement': 'focusElement',
+                'scrollToTop': 'focusElement' // Reuse for demo
+            };
+            
+            if (action === 'scrollToTop') {
+                demo.executeClientTool({ client: { fn: 'scrollToTop' } });
+            } else {
+                demo.executeTool(toolMap[action]);
+            }
+        }
+
+        function executeSystemTool(operation) {
+            const toolMap = {
+                'assign': 'assignValue',
+                'merge': 'mergeData',
+                'transform': 'transformData'
+            };
+            
+            demo.executeTool(toolMap[operation]);
+        }
+
+        function runCompleteWorkflow() {
+            demo.runCompleteWorkflow();
+        }
+
+        function clearWorkflow() {
+            demo.clearWorkflow();
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Show selected tab
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('demo-modal').style.display = 'none';
+        }
+
+        function updateConfiguration() {
+            const config = {
+                apiBaseUrl: document.getElementById('api-base-url').value,
+                cacheStrategy: document.getElementById('cache-strategy').value,
+                circuitThreshold: parseInt(document.getElementById('circuit-threshold').value),
+                requestTimeout: parseInt(document.getElementById('request-timeout').value)
+            };
+            
+            demo.logInfo(`⚙️ Configuration updated: ${JSON.stringify(config)}`);
+            demo.showNotification('Configuration updated successfully!', 'success');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('demo-modal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
