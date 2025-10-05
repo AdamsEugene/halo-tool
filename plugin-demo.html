@@ -13,7 +13,7 @@
 
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        max-width: 1200px;
+        max-width: 100vw;
         margin: 0 auto;
         padding: 20px;
         background: #f5f7fa;
@@ -756,6 +756,15 @@
         <h2>🔄 Workflow & Trigger Management</h2>
         <p>Create tools and manage lifecycle triggers for automated workflows:</p>
         
+        <div style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 6px; padding: 12px; margin-bottom: 20px;">
+            <h4 style="margin: 0 0 8px 0; color: #1976d2;">📋 How to Register a Tool:</h4>
+            <ol style="margin: 0; padding-left: 20px; color: #1565c0; font-size: 14px;">
+                <li><strong>Quick Start:</strong> Click "⚡ Create Quick Test Tool" for instant demo</li>
+                <li><strong>Manual:</strong> Fill in tool name → Configure HTTP request above → Select lifecycle trigger → Click "🔧 Create Tool"</li>
+                <li><strong>Test:</strong> Use the lifecycle event buttons below to trigger your tools</li>
+            </ol>
+        </div>
+        
         <div class="grid">
             <div>
                 <div class="input-group">
@@ -768,8 +777,11 @@
                             <option value="system">⚙️ System Tool</option>
                         </select>
                     </div>
-                    <button class="btn success" onclick="createToolFromForm()" style="width: 100%; margin-bottom: 15px;">
+                    <button class="btn success" onclick="createToolFromForm()" style="width: 100%; margin-bottom: 8px;">
                         🔧 Create Tool with Current Settings
+                    </button>
+                    <button class="btn" onclick="createQuickTestTool()" style="width: 100%; margin-bottom: 15px; background: #17a2b8; color: white;">
+                        ⚡ Create Quick Test Tool
                     </button>
                 </div>
 
@@ -868,7 +880,15 @@
         <button class="btn" onclick="getState()">Get State</button>
         <button class="btn danger" onclick="clearState()">Clear State</button>
 
-        <div class="state-display" id="state-display">State will appear here...</div>
+       <pre id="state-display" style="
+  background-color: #1e1e1e;
+  color: #dcdcdc;
+  padding: 16px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+">State will appear here...</pre>
       </div>
     </div>
 
@@ -1438,6 +1458,33 @@
 
             // Clear tool name for next creation
             document.getElementById('tool-name').value = '';
+        }
+
+        // NEW: Create a quick test tool for demonstration
+        function createQuickTestTool() {
+            // Set up a simple test tool
+            document.getElementById('tool-name').value = 'TestUserFetcher';
+            document.getElementById('tool-type').value = 'server';
+            document.getElementById('http-url').value = 'https://jsonplaceholder.typicode.com/users/1';
+            document.getElementById('http-method').value = 'GET';
+            document.getElementById('http-headers').value = '{}';
+            document.getElementById('http-body').value = '';
+            document.getElementById('lifecycle-trigger').value = 'onTreeLaunch';
+            document.getElementById('state-save-path').value = 'api.testUser';
+            
+            // Clear existing mappings and add a simple one
+            clearAllMappings();
+            const mappings = [{ from: '$.name', to: 'user.displayName' }];
+            setMappingsInUI(mappings);
+            
+            // Clear and add response action
+            clearAllResponseActions();
+            addResponseActionWithValues('state-update', 'workflow.status = "user-loaded"');
+            
+            // Create the tool
+            createToolFromForm();
+            
+            logToWorkflowOutput('🎯 Quick test tool created! Try clicking "🚀 Tree Launch" to test it.');
         }
 
         function updateRegisteredToolsList() {
