@@ -728,6 +728,23 @@
           >
             🔗 Mapping Example
           </button>
+          <button
+            class="btn"
+            onclick="loadTriggerWorkflowExample()"
+            style="
+              background: #fce4ec;
+              border: 1px solid #e91e63;
+              padding: 8px 12px;
+              border-radius: 4px;
+              color: #c2185b;
+              cursor: pointer;
+              font-size: 12px;
+              margin-right: 8px;
+              margin-bottom: 8px;
+            "
+          >
+            🚀 Trigger Workflow
+          </button>
         </div>
       </div>
 
@@ -1304,8 +1321,323 @@
         return currentState;
       }
 
-      // Add this to window for easy testing
-      window.testFieldMapping = testFieldMapping;
+        // Add this to window for easy testing
+        window.testFieldMapping = testFieldMapping;
+
+        // NEW: Response Action Management Functions
+        function addResponseAction() {
+            const container = document.getElementById('response-actions-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'response-action-row';
+            newRow.style.cssText = 'display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid #e9ecef;';
+            newRow.innerHTML = `
+                <select style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" class="action-type">
+                    <option value="">No Action</option>
+                    <option value="trigger-tool">🔧 Trigger Another Tool</option>
+                    <option value="client-action">🖥️ Client Action</option>
+                    <option value="state-update">💾 State Update</option>
+                    <option value="conditional">🔀 Conditional Action</option>
+                </select>
+                <input type="text" placeholder="Action details..." style="flex: 2; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="action-details">
+                <button type="button" onclick="removeResponseAction(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">×</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeResponseAction(button) {
+            const container = document.getElementById('response-actions-container');
+            if (container.children.length > 1) {
+                button.parentNode.remove();
+            }
+        }
+
+        function getResponseActionsFromUI() {
+            const actions = [];
+            const rows = document.querySelectorAll('.response-action-row');
+            
+            rows.forEach(row => {
+                const typeSelect = row.querySelector('.action-type');
+                const detailsInput = row.querySelector('.action-details');
+                
+                if (typeSelect.value && detailsInput.value.trim()) {
+                    actions.push({
+                        type: typeSelect.value,
+                        details: detailsInput.value.trim()
+                    });
+                }
+            });
+            
+            return actions;
+        }
+
+        // NEW: Tool Management System
+        const registeredTools = new Map();
+        const triggerHandlers = new Map();
+
+        function createToolFromForm() {
+            const toolName = document.getElementById('tool-name').value.trim();
+            const toolType = document.getElementById('tool-type').value;
+            const lifecycleTrigger = document.getElementById('lifecycle-trigger').value;
+            const responseActions = getResponseActionsFromUI();
+            
+            if (!toolName) {
+                alert('Please enter a tool name');
+                return;
+            }
+
+            const toolId = `tool_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+            
+            // Get current form settings
+            const url = document.getElementById('http-url').value;
+            const method = document.getElementById('http-method').value;
+            const headers = document.getElementById('http-headers').value;
+            const body = document.getElementById('http-body').value;
+            const statePath = document.getElementById('state-save-path').value;
+            const fieldMappings = getMappingsFromUI();
+
+            const toolConfig = {
+                id: toolId,
+                name: toolName,
+                type: toolType,
+                trigger: lifecycleTrigger,
+                responseActions: responseActions,
+                config: {
+                    url: url,
+                    method: method,
+                    headers: headers ? JSON.parse(headers) : {},
+                    body: body ? JSON.parse(body) : null,
+                    statePath: statePath,
+                    fieldMappings: fieldMappings
+                },
+                createdAt: new Date().toISOString()
+            };
+
+            // Register the tool
+            registeredTools.set(toolId, toolConfig);
+            
+            // Register trigger handler if specified
+            if (lifecycleTrigger) {
+                if (!triggerHandlers.has(lifecycleTrigger)) {
+                    triggerHandlers.set(lifecycleTrigger, []);
+                }
+                triggerHandlers.get(lifecycleTrigger).push(toolId);
+            }
+
+            // Update UI
+            updateRegisteredToolsList();
+            updateActiveTriggersList();
+            
+            // Log success
+            logToWorkflowOutput(`✅ Tool '${toolName}' created successfully with ID: ${toolId}`);
+            if (lifecycleTrigger) {
+                logToWorkflowOutput(`🔗 Tool registered for trigger: ${lifecycleTrigger}`);
+            }
+            if (responseActions.length > 0) {
+                logToWorkflowOutput(`⚡ Tool configured with ${responseActions.length} response action(s)`);
+            }
+
+            // Clear tool name for next creation
+            document.getElementById('tool-name').value = '';
+        }
+
+        function updateRegisteredToolsList() {
+            const container = document.getElementById('registered-tools-list');
+            
+            if (registeredTools.size === 0) {
+                container.innerHTML = '<em style="color: #6c757d;">No tools registered yet</em>';
+                return;
+            }
+
+            let html = '';
+            registeredTools.forEach((tool, toolId) => {
+                const typeIcon = tool.type === 'server' ? '🌐' : tool.type === 'client' ? '🖥️' : '⚙️';
+                const triggerBadge = tool.trigger ? `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.trigger}</span>` : '';
+                const actionsBadge = tool.responseActions.length > 0 ? `<span style="background: #fff3e0; color: #f57c00; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.responseActions.length} actions</span>` : '';
+                
+                html += `
+                    <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border: 1px solid #e9ecef;">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <span style="font-weight: 600; font-size: 13px;">${typeIcon} ${tool.name}</span>
+                            <button onclick="executeRegisteredTool('${toolId}')" style="background: #28a745; color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;">▶</button>
+                        </div>
+                        <div style="font-size: 11px; color: #6c757d; margin-top: 2px;">
+                            ID: ${toolId.substr(-6)}${triggerBadge}${actionsBadge}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function updateActiveTriggersList() {
+            const container = document.getElementById('active-triggers-list');
+            
+            if (triggerHandlers.size === 0) {
+                container.innerHTML = '<em style="color: #6c757d;">No active triggers</em>';
+                return;
+            }
+
+            let html = '';
+            triggerHandlers.forEach((toolIds, trigger) => {
+                const triggerIcon = getTriggerIcon(trigger);
+                html += `
+                    <div style="margin-bottom: 6px; padding: 6px; background: white; border-radius: 4px; border: 1px solid #e9ecef;">
+                        <div style="font-weight: 600; font-size: 12px; color: #495057;">${triggerIcon} ${trigger}</div>
+                        <div style="font-size: 11px; color: #6c757d;">${toolIds.length} tool(s) registered</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function getTriggerIcon(trigger) {
+            const icons = {
+                'onTreeLaunch': '🚀',
+                'onPageEnter': '📄',
+                'onPageExit': '🚪',
+                'onElementMount': '🔧',
+                'onElementChange': '✏️',
+                'onElementUnmount': '🗑️',
+                'onTreeComplete': '🎉'
+            };
+            return icons[trigger] || '⚡';
+        }
+
+        function simulateLifecycleEvent(eventType) {
+            logToWorkflowOutput(`\n🎭 Simulating lifecycle event: ${getTriggerIcon(eventType)} ${eventType}`);
+            
+            const handlersForEvent = triggerHandlers.get(eventType);
+            if (!handlersForEvent || handlersForEvent.length === 0) {
+                logToWorkflowOutput(`ℹ️ No tools registered for ${eventType} event`);
+                return;
+            }
+
+            logToWorkflowOutput(`🔍 Found ${handlersForEvent.length} tool(s) to execute for ${eventType}`);
+            
+            // Execute each tool registered for this event
+            handlersForEvent.forEach(async (toolId) => {
+                const tool = registeredTools.get(toolId);
+                if (tool) {
+                    logToWorkflowOutput(`⚡ Executing tool: ${tool.name} (${tool.type})`);
+                    await executeRegisteredTool(toolId, eventType);
+                }
+            });
+        }
+
+        async function executeRegisteredTool(toolId, triggeredBy = 'manual') {
+            const tool = registeredTools.get(toolId);
+            if (!tool) {
+                logToWorkflowOutput(`❌ Tool ${toolId} not found`);
+                return;
+            }
+
+            try {
+                logToWorkflowOutput(`🔧 Executing ${tool.type} tool: ${tool.name}`);
+                
+                let result;
+                
+                if (tool.type === 'server') {
+                    // Execute HTTP request
+                    const options = {
+                        method: tool.config.method,
+                        headers: tool.config.headers,
+                        body: tool.config.body
+                    };
+                    
+                    result = await haloTool.request(tool.config.url, options, tool.config.statePath);
+                    
+                    // Process field mappings
+                    if (tool.config.fieldMappings && tool.config.fieldMappings.length > 0) {
+                        const currentState = haloTool.getState();
+                        tool.config.fieldMappings.forEach(mapping => {
+                            if (mapping.from && mapping.to) {
+                                const value = extractValue(result.data, mapping.from);
+                                if (value !== undefined) {
+                                    setNestedValue(currentState, mapping.to, value);
+                                    logToWorkflowOutput(`📝 Mapped ${mapping.from} → ${mapping.to}: ${JSON.stringify(value)}`);
+                                }
+                            }
+                        });
+                        haloTool.setState(currentState);
+                    }
+                    
+                } else if (tool.type === 'client') {
+                    // Execute client action
+                    result = { success: true, data: `Client tool '${tool.name}' executed`, action: 'client' };
+                    logToWorkflowOutput(`🖥️ Client tool executed: ${tool.name}`);
+                    
+                } else if (tool.type === 'system') {
+                    // Execute system operation
+                    result = { success: true, data: `System tool '${tool.name}' executed`, operation: 'system' };
+                    logToWorkflowOutput(`⚙️ System tool executed: ${tool.name}`);
+                }
+
+                logToWorkflowOutput(`✅ Tool '${tool.name}' completed successfully`);
+                
+                // Process response actions
+                if (result.success && tool.responseActions.length > 0) {
+                    logToWorkflowOutput(`⚡ Processing ${tool.responseActions.length} response action(s)...`);
+                    
+                    for (const action of tool.responseActions) {
+                        await executeResponseAction(action, result, tool);
+                    }
+                }
+                
+            } catch (error) {
+                logToWorkflowOutput(`❌ Tool '${tool.name}' failed: ${error.message}`);
+            }
+        }
+
+        async function executeResponseAction(action, toolResult, parentTool) {
+            logToWorkflowOutput(`⚡ Executing response action: ${action.type}`);
+            
+            switch (action.type) {
+                case 'trigger-tool':
+                    // Find and execute another tool
+                    const targetToolId = action.details;
+                    const targetTool = Array.from(registeredTools.values()).find(t => t.name === targetToolId || t.id === targetToolId);
+                    if (targetTool) {
+                        logToWorkflowOutput(`🔗 Triggering tool: ${targetTool.name}`);
+                        await executeRegisteredTool(targetTool.id, 'response-action');
+                    } else {
+                        logToWorkflowOutput(`⚠️ Target tool '${targetToolId}' not found`);
+                    }
+                    break;
+                    
+                case 'client-action':
+                    logToWorkflowOutput(`🖥️ Executing client action: ${action.details}`);
+                    // Could trigger modal, notification, etc.
+                    break;
+                    
+                case 'state-update':
+                    logToWorkflowOutput(`💾 Updating state: ${action.details}`);
+                    const [path, value] = action.details.split('=');
+                    if (path && value) {
+                        const currentState = haloTool.getState();
+                        setNestedValue(currentState, path.trim(), JSON.parse(value.trim()));
+                        haloTool.setState(currentState);
+                    }
+                    break;
+                    
+                case 'conditional':
+                    logToWorkflowOutput(`🔀 Evaluating condition: ${action.details}`);
+                    // Could evaluate conditions based on response data
+                    break;
+            }
+        }
+
+        function logToWorkflowOutput(message) {
+            const output = document.getElementById('workflow-output');
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `<div style="margin-bottom: 4px;"><span style="color: #6c757d; font-size: 11px;">[${timestamp}]</span> ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Initialize the UI
+        updateRegisteredToolsList();
+        updateActiveTriggersList();
 
       // Demo functions
       function toggleAuthFields() {
@@ -1559,6 +1891,67 @@
         ];
         setMappingsInUI(mappings);
         toggleAuthFields();
+      }
+
+      // NEW: Load example with lifecycle triggers and response actions
+      function loadTriggerWorkflowExample() {
+        // Load a user data fetch that triggers on tree launch
+        document.getElementById('http-method').value = 'GET';
+        document.getElementById('http-url').value = 'https://jsonplaceholder.typicode.com/users/1';
+        document.getElementById('http-headers').value = JSON.stringify({ 'Content-Type': 'application/json' }, null, 2);
+        document.getElementById('http-body').value = '';
+        document.getElementById('auth-type').value = '';
+        document.getElementById('state-save-path').value = 'workflow.currentUser';
+        document.getElementById('lifecycle-trigger').value = 'onTreeLaunch';
+        
+        // Clear existing mappings and actions
+        clearAllMappings();
+        clearAllResponseActions();
+        
+        // Set up field mappings
+        const mappings = [
+          { from: '$.name', to: 'user.name' },
+          { from: '$.email', to: 'user.email' }
+        ];
+        setMappingsInUI(mappings);
+        
+        // Set up response actions
+        addResponseActionWithValues('state-update', 'workflow.step = "user-loaded"');
+        addResponseActionWithValues('trigger-tool', 'UserPostsLoader');
+        
+        toggleAuthFields();
+        
+        // Show instructions
+        logToWorkflowOutput('📋 Trigger Workflow Example loaded:');
+        logToWorkflowOutput('1️⃣ This tool will execute on Tree Launch');
+        logToWorkflowOutput('2️⃣ It will fetch user data and map it to state');
+        logToWorkflowOutput('3️⃣ On success, it will update workflow step and trigger another tool');
+        logToWorkflowOutput('4️⃣ Click "Create Tool" to register it, then simulate "Tree Launch" to test');
+      }
+
+      function clearAllResponseActions() {
+        const container = document.getElementById('response-actions-container');
+        container.innerHTML = `
+          <div class="response-action-row" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid #e9ecef;">
+            <select style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" class="action-type">
+              <option value="">No Action</option>
+              <option value="trigger-tool">🔧 Trigger Another Tool</option>
+              <option value="client-action">🖥️ Client Action</option>
+              <option value="state-update">💾 State Update</option>
+              <option value="conditional">🔀 Conditional Action</option>
+            </select>
+            <input type="text" placeholder="Action details..." style="flex: 2; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="action-details">
+            <button type="button" onclick="removeResponseAction(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">×</button>
+          </div>
+        `;
+      }
+
+      function addResponseActionWithValues(type, details) {
+        addResponseAction();
+        const rows = document.querySelectorAll('.response-action-row');
+        const lastRow = rows[rows.length - 1];
+        lastRow.querySelector('.action-type').value = type;
+        lastRow.querySelector('.action-details').value = details;
       }
 
       // Demo functions
