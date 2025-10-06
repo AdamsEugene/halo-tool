@@ -1855,47 +1855,89 @@ State will appear here...</pre
           return;
         }
 
-        try {
-          logToWorkflowOutput(`🔧 Executing ${tool.type} tool: ${tool.name}`);
+        const startTime = Date.now();
+        logToWorkflowOutput(`🚀 [${new Date().toLocaleTimeString()}] Starting execution of ${tool.type} tool: "${tool.name}" (triggered by: ${triggeredBy})`);
 
+        try {
           let result;
 
           if (tool.type === 'server') {
-            // Execute HTTP request
-            const options = {
-              method: tool.config.method,
-              headers: tool.config.headers,
-              body: tool.config.body,
-            };
+            // Execute HTTP request with detailed logging
+            const url = tool.config.url;
+            const method = tool.config.method;
+            const headers = tool.config.headers || {};
+            const body = tool.config.body;
 
-            result = await haloTool.request(tool.config.url, options, tool.config.statePath);
-
-            // Process field mappings
-            if (tool.config.fieldMappings && tool.config.fieldMappings.length > 0) {
-              const currentState = haloTool.getState();
-              tool.config.fieldMappings.forEach(mapping => {
-                if (mapping.from && mapping.to) {
-                  const value = extractValue(result.data, mapping.from);
-                  if (value !== undefined) {
-                    setNestedValue(currentState, mapping.to, value);
-                    logToWorkflowOutput(
-                      `📝 Mapped ${mapping.from} → ${mapping.to}: ${JSON.stringify(value)}`
-                    );
-                  }
-                }
-              });
-              haloTool.setState(currentState);
+            logToWorkflowOutput(`🌐 Making ${method} request to: ${url}`);
+            logToWorkflowOutput(`📋 Headers: ${JSON.stringify(headers)}`);
+            if (body && method !== 'GET') {
+              logToWorkflowOutput(`📦 Body: ${JSON.stringify(body)}`);
             }
+
+            // Add timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+              controller.abort();
+              logToWorkflowOutput(`⏰ Request timed out after 30 seconds`);
+            }, 30000);
+
+            try {
+              const options = {
+                method: tool.config.method,
+                headers: tool.config.headers,
+                body: tool.config.body,
+                signal: controller.signal
+              };
+
+              result = await haloTool.request(tool.config.url, options, tool.config.statePath);
+              clearTimeout(timeoutId);
+
+              logToWorkflowOutput(`📡 Response received - Success: ${result.success}`);
+              logToWorkflowOutput(`📄 Response data: ${JSON.stringify(result.data, null, 2).substring(0, 500)}${JSON.stringify(result.data, null, 2).length > 500 ? '...' : ''}`);
+
+              // Process field mappings
+              if (result.success && tool.config.fieldMappings && tool.config.fieldMappings.length > 0) {
+                logToWorkflowOutput(`🔄 Processing ${tool.config.fieldMappings.length} field mapping(s)...`);
+                
+                const currentState = haloTool.getState();
+                tool.config.fieldMappings.forEach((mapping, index) => {
+                  if (mapping.from && mapping.to) {
+                    logToWorkflowOutput(`🔍 [Mapping ${index + 1}] Extracting from: ${mapping.from}`);
+                    const value = extractValue(result.data, mapping.from);
+                    if (value !== undefined) {
+                      setNestedValue(currentState, mapping.to, value);
+                      logToWorkflowOutput(`✅ [Mapping ${index + 1}] Mapped ${mapping.from} → ${mapping.to}: ${JSON.stringify(value)}`);
+                    } else {
+                      logToWorkflowOutput(`❌ [Mapping ${index + 1}] Could not extract value from path: ${mapping.from}`);
+                    }
+                  }
+                });
+                haloTool.setState(currentState);
+                logToWorkflowOutput(`🔄 State updated with field mappings`);
+              }
+
+            } catch (fetchError) {
+              clearTimeout(timeoutId);
+              if (fetchError.name === 'AbortError') {
+                throw new Error('Request timed out after 30 seconds');
+              } else {
+                throw fetchError;
+              }
+            }
+
           } else if (tool.type === 'client') {
             // Execute client action
+            logToWorkflowOutput(`🖥️ Executing client action...`);
             result = {
               success: true,
               data: `Client tool '${tool.name}' executed`,
               action: 'client',
             };
             logToWorkflowOutput(`🖥️ Client tool executed: ${tool.name}`);
+            
           } else if (tool.type === 'system') {
             // Execute system operation
+            logToWorkflowOutput(`⚙️ Executing system operation...`);
             result = {
               success: true,
               data: `System tool '${tool.name}' executed`,
@@ -1904,60 +1946,104 @@ State will appear here...</pre
             logToWorkflowOutput(`⚙️ System tool executed: ${tool.name}`);
           }
 
-          logToWorkflowOutput(`✅ Tool '${tool.name}' completed successfully`);
+          const duration = Date.now() - startTime;
+          logToWorkflowOutput(`✅ [${new Date().toLocaleTimeString()}] Tool '${tool.name}' completed successfully in ${duration}ms`);
 
           // Process response actions
-          if (result.success && tool.responseActions.length > 0) {
-            logToWorkflowOutput(
-              `⚡ Processing ${tool.responseActions.length} response action(s)...`
-            );
+          if (result.success && tool.responseActions && tool.responseActions.length > 0) {
+            logToWorkflowOutput(`⚡ Processing ${tool.responseActions.length} response action(s)...`);
 
-            for (const action of tool.responseActions) {
+            for (let i = 0; i < tool.responseActions.length; i++) {
+              const action = tool.responseActions[i];
+              logToWorkflowOutput(`🎯 [Action ${i + 1}] Executing: ${action.type} - ${JSON.stringify(action.details)}`);
               await executeResponseAction(action, result, tool);
+              logToWorkflowOutput(`✅ [Action ${i + 1}] Completed`);
             }
           }
+
         } catch (error) {
-          logToWorkflowOutput(`❌ Tool '${tool.name}' failed: ${error.message}`);
+          const duration = Date.now() - startTime;
+          logToWorkflowOutput(`💥 [${new Date().toLocaleTimeString()}] Tool '${tool.name}' failed after ${duration}ms: ${error.message}`);
+          logToWorkflowOutput(`🔍 Error details: ${error.stack || 'No stack trace available'}`);
+          console.error('Tool execution error:', error);
         }
       }
 
+      // Track execution depth to prevent infinite loops
+      let executionDepth = 0;
+      const MAX_EXECUTION_DEPTH = 5;
+
       async function executeResponseAction(action, toolResult, parentTool) {
-        logToWorkflowOutput(`⚡ Executing response action: ${action.type}`);
+        if (executionDepth >= MAX_EXECUTION_DEPTH) {
+          logToWorkflowOutput(`🛑 Maximum execution depth (${MAX_EXECUTION_DEPTH}) reached. Preventing infinite loop.`);
+          return;
+        }
 
-        switch (action.type) {
-          case 'trigger-tool':
-            // Find and execute another tool
-            const targetToolId = action.details;
-            const targetTool = Array.from(registeredTools.values()).find(
-              t => t.name === targetToolId || t.id === targetToolId
-            );
-            if (targetTool) {
-              logToWorkflowOutput(`🔗 Triggering tool: ${targetTool.name}`);
-              await executeRegisteredTool(targetTool.id, 'response-action');
-            } else {
-              logToWorkflowOutput(`⚠️ Target tool '${targetToolId}' not found`);
-            }
-            break;
+        executionDepth++;
+        logToWorkflowOutput(`⚡ [Depth ${executionDepth}] Executing response action: ${action.type} - ${JSON.stringify(action.details)}`);
 
-          case 'client-action':
-            logToWorkflowOutput(`🖥️ Executing client action: ${action.details}`);
-            // Could trigger modal, notification, etc.
-            break;
+        try {
+          switch (action.type) {
+            case 'trigger-tool':
+              // Find and execute another tool
+              const targetToolId = action.details;
+              logToWorkflowOutput(`🔍 Looking for tool: ${targetToolId}`);
+              
+              const targetTool = Array.from(registeredTools.values()).find(
+                t => t.name === targetToolId || t.id === targetToolId
+              );
+              
+              if (targetTool) {
+                logToWorkflowOutput(`🔗 Triggering tool: ${targetTool.name} (${targetTool.id})`);
+                await executeRegisteredTool(targetTool.id, `response-action-from-${parentTool.name}`);
+              } else {
+                logToWorkflowOutput(`⚠️ Target tool '${targetToolId}' not found`);
+                logToWorkflowOutput(`📋 Available tools: ${Array.from(registeredTools.values()).map(t => t.name).join(', ')}`);
+              }
+              break;
 
-          case 'state-update':
-            logToWorkflowOutput(`💾 Updating state: ${action.details}`);
-            const [path, value] = action.details.split('=');
-            if (path && value) {
-              const currentState = haloTool.getState();
-              setNestedValue(currentState, path.trim(), JSON.parse(value.trim()));
-              haloTool.setState(currentState);
-            }
-            break;
+            case 'client-action':
+              logToWorkflowOutput(`🖥️ Executing client action: ${action.details}`);
+              // Simulate client action execution
+              await new Promise(resolve => setTimeout(resolve, 100));
+              logToWorkflowOutput(`✅ Client action '${action.details}' completed`);
+              break;
 
-          case 'conditional':
-            logToWorkflowOutput(`🔀 Evaluating condition: ${action.details}`);
-            // Could evaluate conditions based on response data
-            break;
+            case 'state-update':
+              logToWorkflowOutput(`💾 Updating state: ${action.details}`);
+              try {
+                const [path, value] = action.details.split('=');
+                if (path && value) {
+                  const currentState = haloTool.getState();
+                  const parsedValue = JSON.parse(value.trim());
+                  setNestedValue(currentState, path.trim(), parsedValue);
+                  haloTool.setState(currentState);
+                  logToWorkflowOutput(`✅ State updated: ${path.trim()} = ${JSON.stringify(parsedValue)}`);
+                } else {
+                  logToWorkflowOutput(`❌ Invalid state update format. Expected: 'path=value'`);
+                }
+              } catch (parseError) {
+                logToWorkflowOutput(`❌ Failed to parse state update value: ${parseError.message}`);
+              }
+              break;
+
+            case 'conditional':
+              logToWorkflowOutput(`🔀 Evaluating condition: ${action.details}`);
+              // Simulate conditional execution
+              await new Promise(resolve => setTimeout(resolve, 50));
+              logToWorkflowOutput(`✅ Condition '${action.details}' evaluated`);
+              break;
+
+            default:
+              logToWorkflowOutput(`❓ Unknown response action type: ${action.type}`);
+              break;
+          }
+        } catch (error) {
+          logToWorkflowOutput(`💥 Response action failed: ${error.message}`);
+          console.error('Response action error:', error);
+        } finally {
+          executionDepth--;
+          logToWorkflowOutput(`⬅️ [Depth ${executionDepth + 1}] Response action completed: ${action.type}`);
         }
       }
 
