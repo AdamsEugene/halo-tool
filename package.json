@@ -6,6 +6,12 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "build:plugin": "rollup -c rollup.config.js",
+    "build:plugin:browser": "TARGET=browser rollup -c rollup.config.js",
+    "build:plugin:node": "TARGET=node rollup -c rollup.config.js",
+    "build:state-plugin": "rollup -c rollup.state-plugin.config.js",
+    "build:state-plugin:prod": "NODE_ENV=production rollup -c rollup.state-plugin.config.js",
+    "build:all": "npm run build && npm run build:plugin:node && npm run build:plugin:browser && npm run build:state-plugin",
     "dev": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",

@@ -1111,6 +1111,9 @@ State will appear here...</pre
     <!-- Load haloTool -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="./dist/halo-tool.browser.js"></script>
+    
+    <!-- Halo State Management Plugin -->
+    <script src="./dist/state/halo-state-plugin.browser.js"></script>
     <script>
       // Initialize the real haloTool plugin
       let haloTool;
@@ -1134,172 +1137,53 @@ State will appear here...</pre
               });
             }
 
-            // Initialize Halo state structure according to architecture
-            const initialHaloState = {
-              session: {
-                treeId: `demo-tree-${Date.now()}`,
-                userId: 'demo-user',
-                startedAt: new Date().toISOString(),
-                currentPage: 'demo-page-1',
-                pageHistory: ['demo-page-1'],
-                navigationStack: []
-              },
-              context: {
-                orgId: 'demo-org',
-                locale: 'en-US',
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                userPreferences: {},
-                pricing: {
-                  rules: []
-                },
-                inventory: {
-                  facets: []
-                },
-                workflow: {
-                  currentStep: 1,
-                  totalSteps: 3,
-                  completedSteps: []
-                }
-              },
-              form: {
-                // Widget form values - following the flowchart examples
-                make: {
-                  value: null,
-                  errors: [],
-                  touched: false,
-                  valid: false,
-                  dependencies: ['model'] // model depends on make
-                },
-                model: {
-                  value: null,
-                  errors: [],
-                  touched: false,
-                  valid: false,
-                  dependsOn: ['make'] // model depends on make selection
-                },
-                year: {
-                  value: null,
-                  errors: [],
-                  touched: false,
-                  valid: false
-                },
-                // Additional form fields can be added dynamically
-                user: {
-                  name: null,
-                  email: null,
-                  phone: null
-                },
-                address: {
-                  street: null,
-                  city: null,
-                  state: null,
-                  zip: null
-                },
-                company: {
-                  name: null,
-                  industry: null
-                }
-              },
-              ui: {
-                // Widget UI state - options, loading states, etc.
-                make: {
-                  options: [],
-                  loading: false,
-                  error: null,
-                  lastFetched: null
-                },
-                model: {
-                  options: [],
-                  loading: false,
-                  error: null,
-                  lastFetched: null,
-                  dependsOn: 'make' // UI dependency tracking
-                },
-                year: {
-                  options: [],
-                  loading: false,
-                  error: null
-                },
-                // Modal and notification states
-                modals: {
-                  active: [],
-                  history: []
-                },
-                notifications: {
-                  active: [],
-                  history: []
-                },
-                // Widget visibility and interaction states
-                widgets: {
-                  visible: [],
-                  disabled: [],
-                  focused: null,
-                  interacting: null
-                },
-                // Page-level UI state
-                page: {
-                  loading: false,
-                  error: null,
-                  validationErrors: [],
-                  canNavigate: true
-                }
-              },
-              tools: {
-                lastRun: {},
-                cache: {},
-                errors: {},
-                metrics: {
-                  callCounts: {},
-                  avgLatency: {},
-                  errorRates: {},
-                  successRates: {},
-                  cacheHitRates: {}
-                },
-                // Circuit breaker states
-                circuitBreakers: {},
-                // Rate limiting states
-                rateLimits: {},
-                // Request deduplication tracking
-                pendingRequests: {}
-              },
-              // Event sourcing and audit trail
-              _events: {
-                log: [],
-                checkpoints: {},
-                currentCheckpoint: null
-              },
-              _meta: {
-                version: '1.0.0',
-                lastUpdated: new Date().toISOString(),
-                checkpoints: [],
-                // State validation
-                validation: {
-                  isValid: false,
-                  errors: [],
-                  warnings: []
-                },
-                // Performance tracking
-                performance: {
-                  stateSize: 0,
-                  updateCount: 0,
-                  lastUpdateDuration: 0
-                },
-                // Development and debugging
-                debug: {
-                  enabled: true,
-                  traceUpdates: true,
-                  logLevel: 'info'
-                }
-              }
-            };
+            // Initialize Halo State Plugin
+            const haloStatePlugin = createHaloStatePlugin({
+              enableEventSourcing: true,
+              enableCheckpoints: true,
+              enableValidation: true,
+              enableDependencyTracking: true,
+              debugMode: true,
+              maxEventLogSize: 500,
+              maxCheckpoints: 5
+            });
 
-            // Set initial state structure
-            haloTool.setState(initialHaloState);
-            
-            logToWorkflowOutput('🚀 HaloTool initialized with proper Halo state structure');
+            // Make state plugin globally accessible
+            window.haloStatePlugin = haloStatePlugin;
+
+            // Replace haloTool's state management with our plugin
+            haloTool.getState = () => haloStatePlugin.getState();
+            haloTool.setState = (state) => haloStatePlugin.setState(state);
+
+            // Set up state plugin event listeners
+            haloStatePlugin.on('stateChanged', (newState, oldState) => {
+              console.log('🔄 State changed:', { newState, oldState });
+              updateStateDisplay();
+            });
+
+            haloStatePlugin.on('formFieldChanged', (fieldName, value, oldValue) => {
+              console.log(`📝 Form field changed: ${fieldName}`, { value, oldValue });
+            });
+
+            haloStatePlugin.on('dependentFieldCleared', (depField, parentField, parentValue) => {
+              console.log(`🔗 Dependent field cleared: ${depField} (parent: ${parentField})`, { parentValue });
+            });
+
+            haloStatePlugin.on('fieldValidated', (fieldName, isValid, errors) => {
+              console.log(`✅ Field validated: ${fieldName}`, { isValid, errors });
+            });
+
+            // Set up dependencies based on Halo architecture
+            haloStatePlugin.registerDependency('make', ['model']);
+
+            // Initialize lifecycle triggers
+            haloStatePlugin.onTreeLaunch();
+
+            logToWorkflowOutput('🚀 HaloTool initialized with Halo State Plugin');
             logToWorkflowOutput(`📊 State structure: session, context, form, ui, tools, _events, _meta`);
             logToWorkflowOutput(`🔗 Widget dependencies: make → model (cascading updates)`);
             logToWorkflowOutput(`🎯 Lifecycle triggers: onTreeLaunch, onPageEnter, onPageExit, onTreeComplete`);
+            logToWorkflowOutput(`🔍 Event sourcing enabled with ${haloStatePlugin.getEventLog().length} events`);
             
             // Force update state display
             updateStateDisplay();
@@ -1976,7 +1860,115 @@ State will appear here...</pre
           });
         }
         
-        return true;
+        // NEW: Enhanced State Management Functions following Halo Architecture
+
+      // Helper function to update form values using the state plugin
+      function updateFormValue(fieldName, value) {
+        if (window.haloStatePlugin) {
+          window.haloStatePlugin.updateFormField(fieldName, value, {
+            triggerValidation: true,
+            triggerDependencies: true,
+            metadata: { triggeredBy: 'demo-button', source: 'user-interaction' }
+          });
+          logToWorkflowOutput(`📝 Updated form field: ${fieldName} = ${JSON.stringify(value)}`);
+        }
+      }
+
+      // Helper function to update UI field options using the state plugin
+      function updateUIOptions(fieldName, options) {
+        if (window.haloStatePlugin) {
+          window.haloStatePlugin.updateUIField(fieldName, { 
+            options, 
+            loading: false, 
+            error: null 
+          }, {
+            triggeredBy: 'demo-button',
+            source: 'options-load'
+          });
+          logToWorkflowOutput(`📋 Updated UI options for ${fieldName}: ${options.length} options`);
+        }
+      }
+
+      // Helper function to validate form state
+      function validateFormState() {
+        if (window.haloStatePlugin) {
+          const validation = window.haloStatePlugin.validateForm();
+          logToWorkflowOutput(`✅ Form validation: ${validation.isValid ? 'VALID' : 'INVALID'}`);
+          if (validation.errors.length > 0) {
+            logToWorkflowOutput(`❌ Validation errors: ${validation.errors.join(', ')}`);
+          }
+          return validation.isValid;
+        }
+        return false;
+      }
+
+      // Helper function to create a checkpoint
+      function createStateCheckpoint(id, description) {
+        if (window.haloStatePlugin) {
+          window.haloStatePlugin.createCheckpoint(id, description);
+          logToWorkflowOutput(`📸 Created checkpoint: ${id} - ${description}`);
+        }
+      }
+
+      // Helper function to restore a checkpoint
+      function restoreStateCheckpoint(id) {
+        if (window.haloStatePlugin) {
+          const success = window.haloStatePlugin.restoreCheckpoint(id);
+          if (success) {
+            logToWorkflowOutput(`🔄 Restored checkpoint: ${id}`);
+          } else {
+            logToWorkflowOutput(`❌ Failed to restore checkpoint: ${id}`);
+          }
+          return success;
+        }
+        return false;
+      }
+
+      // Helper function to simulate widget dependency trigger
+      function simulateWidgetDependency() {
+        if (window.haloStatePlugin) {
+          // First update make field
+          updateFormValue('make', 'Toyota');
+          
+          // Wait a bit then show the dependency effect
+          setTimeout(() => {
+            // Update UI with model options for Toyota
+            updateUIOptions('model', [
+              { id: 'camry', name: 'Camry' },
+              { id: 'corolla', name: 'Corolla' },
+              { id: 'prius', name: 'Prius' },
+              { id: 'rav4', name: 'RAV4' }
+            ]);
+            logToWorkflowOutput(`🔗 Dependency triggered: make → model options updated`);
+          }, 500);
+        }
+      }
+
+      // Helper function to demonstrate lifecycle events
+      function simulateLifecycleEvent(eventType) {
+        if (window.haloStatePlugin) {
+          switch (eventType) {
+            case 'onTreeLaunch':
+              window.haloStatePlugin.onTreeLaunch();
+              logToWorkflowOutput(`🚀 Lifecycle event: ${eventType}`);
+              break;
+            case 'onPageEnter':
+              window.haloStatePlugin.onPageEnter('demo-page-2');
+              logToWorkflowOutput(`📄 Lifecycle event: ${eventType} (demo-page-2)`);
+              break;
+            case 'onPageExit':
+              const canExit = window.haloStatePlugin.onPageExit();
+              logToWorkflowOutput(`🚪 Lifecycle event: ${eventType} - ${canExit ? 'ALLOWED' : 'BLOCKED'}`);
+              break;
+            case 'onTreeComplete':
+              window.haloStatePlugin.onTreeComplete();
+              logToWorkflowOutput(`🎉 Lifecycle event: ${eventType}`);
+              break;
+          }
+        }
+      }
+
+      return true;
       }
 
       // NEW: Tool Management System
