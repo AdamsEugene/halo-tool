@@ -846,23 +846,48 @@
 
       <div class="grid">
         <div>
-          <div class="input-group">
-            <label>Quick Actions:</label>
-            <button
-              class="btn"
-              onclick="createQuickTestTool()"
-              style="
-                width: 100%;
-                margin-bottom: 15px;
-                background: #17a2b8;
-                color: white;
-                padding: 10px;
-                font-size: 13px;
-              "
-            >
-              ⚡ Create Quick Test Tool
-            </button>
-          </div>
+           <div class="input-group">
+             <label>State Management Testing:</label>
+             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
+               <button
+                 class="btn"
+                 onclick="updateFormValue('make', 'Toyota')"
+                 style="background: #28a745; color: white; font-size: 12px; padding: 6px 12px;"
+               >
+                 🚗 Set Make: Toyota
+               </button>
+               <button
+                 class="btn"
+                 onclick="updateUIOptions('make', [{id: 'toyota', name: 'Toyota'}, {id: 'honda', name: 'Honda'}])"
+                 style="background: #17a2b8; color: white; font-size: 12px; padding: 6px 12px;"
+               >
+                 📋 Load Make Options
+               </button>
+               <button
+                 class="btn"
+                 onclick="validateFormState()"
+                 style="background: #ffc107; color: black; font-size: 12px; padding: 6px 12px;"
+               >
+                 ✅ Validate Form
+               </button>
+             </div>
+             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+               <button
+                 class="btn"
+                 onclick="createStateCheckpoint('demo-checkpoint')"
+                 style="background: #6f42c1; color: white; font-size: 12px; padding: 6px 12px;"
+               >
+                 💾 Create Checkpoint
+               </button>
+               <button
+                 class="btn"
+                 onclick="restoreStateCheckpoint('demo-checkpoint')"
+                 style="background: #fd7e14; color: white; font-size: 12px; padding: 6px 12px;"
+               >
+                 🔄 Restore Checkpoint
+               </button>
+             </div>
+           </div>
 
           <div class="input-group">
             <label>Simulate Workflow Events:</label>
@@ -1108,6 +1133,176 @@ State will appear here...</pre
                 globalAccess: true,
               });
             }
+
+            // Initialize Halo state structure according to architecture
+            const initialHaloState = {
+              session: {
+                treeId: `demo-tree-${Date.now()}`,
+                userId: 'demo-user',
+                startedAt: new Date().toISOString(),
+                currentPage: 'demo-page-1',
+                pageHistory: ['demo-page-1'],
+                navigationStack: []
+              },
+              context: {
+                orgId: 'demo-org',
+                locale: 'en-US',
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                userPreferences: {},
+                pricing: {
+                  rules: []
+                },
+                inventory: {
+                  facets: []
+                },
+                workflow: {
+                  currentStep: 1,
+                  totalSteps: 3,
+                  completedSteps: []
+                }
+              },
+              form: {
+                // Widget form values - following the flowchart examples
+                make: {
+                  value: null,
+                  errors: [],
+                  touched: false,
+                  valid: false,
+                  dependencies: ['model'] // model depends on make
+                },
+                model: {
+                  value: null,
+                  errors: [],
+                  touched: false,
+                  valid: false,
+                  dependsOn: ['make'] // model depends on make selection
+                },
+                year: {
+                  value: null,
+                  errors: [],
+                  touched: false,
+                  valid: false
+                },
+                // Additional form fields can be added dynamically
+                user: {
+                  name: null,
+                  email: null,
+                  phone: null
+                },
+                address: {
+                  street: null,
+                  city: null,
+                  state: null,
+                  zip: null
+                },
+                company: {
+                  name: null,
+                  industry: null
+                }
+              },
+              ui: {
+                // Widget UI state - options, loading states, etc.
+                make: {
+                  options: [],
+                  loading: false,
+                  error: null,
+                  lastFetched: null
+                },
+                model: {
+                  options: [],
+                  loading: false,
+                  error: null,
+                  lastFetched: null,
+                  dependsOn: 'make' // UI dependency tracking
+                },
+                year: {
+                  options: [],
+                  loading: false,
+                  error: null
+                },
+                // Modal and notification states
+                modals: {
+                  active: [],
+                  history: []
+                },
+                notifications: {
+                  active: [],
+                  history: []
+                },
+                // Widget visibility and interaction states
+                widgets: {
+                  visible: [],
+                  disabled: [],
+                  focused: null,
+                  interacting: null
+                },
+                // Page-level UI state
+                page: {
+                  loading: false,
+                  error: null,
+                  validationErrors: [],
+                  canNavigate: true
+                }
+              },
+              tools: {
+                lastRun: {},
+                cache: {},
+                errors: {},
+                metrics: {
+                  callCounts: {},
+                  avgLatency: {},
+                  errorRates: {},
+                  successRates: {},
+                  cacheHitRates: {}
+                },
+                // Circuit breaker states
+                circuitBreakers: {},
+                // Rate limiting states
+                rateLimits: {},
+                // Request deduplication tracking
+                pendingRequests: {}
+              },
+              // Event sourcing and audit trail
+              _events: {
+                log: [],
+                checkpoints: {},
+                currentCheckpoint: null
+              },
+              _meta: {
+                version: '1.0.0',
+                lastUpdated: new Date().toISOString(),
+                checkpoints: [],
+                // State validation
+                validation: {
+                  isValid: false,
+                  errors: [],
+                  warnings: []
+                },
+                // Performance tracking
+                performance: {
+                  stateSize: 0,
+                  updateCount: 0,
+                  lastUpdateDuration: 0
+                },
+                // Development and debugging
+                debug: {
+                  enabled: true,
+                  traceUpdates: true,
+                  logLevel: 'info'
+                }
+              }
+            };
+
+            // Set initial state structure
+            haloTool.setState(initialHaloState);
+            
+            logToWorkflowOutput('🚀 HaloTool initialized with proper Halo state structure');
+            logToWorkflowOutput(`📊 State structure: session, context, form, ui, tools, _events, _meta`);
+            logToWorkflowOutput(`🔗 Widget dependencies: make → model (cascading updates)`);
+            logToWorkflowOutput(`🎯 Lifecycle triggers: onTreeLaunch, onPageEnter, onPageExit, onTreeComplete`);
+            
+            // Force update state display
+            updateStateDisplay();
 
             document.getElementById('init-status').innerHTML =
               '<span class="status ready">Ready</span>';
@@ -1540,6 +1735,250 @@ State will appear here...</pre
         return actions;
       }
 
+      // NEW: Enhanced State Management Functions following Halo Architecture
+
+      // Event sourcing helper - logs all state changes
+      function logStateEvent(eventType, path, newValue, oldValue = null) {
+        const currentState = haloTool.getState();
+        if (currentState._events) {
+          const event = {
+            id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+            type: eventType,
+            timestamp: new Date().toISOString(),
+            path: path,
+            newValue: newValue,
+            oldValue: oldValue,
+            metadata: {
+              triggeredBy: 'tool-execution',
+              source: 'plugin-demo'
+            }
+          };
+          
+          currentState._events.log.push(event);
+          
+          // Keep only last 100 events to prevent memory issues
+          if (currentState._events.log.length > 100) {
+            currentState._events.log = currentState._events.log.slice(-100);
+          }
+          
+          haloTool.setState(currentState);
+          logToWorkflowOutput(`📝 Event logged: ${eventType} at ${path}`);
+        }
+      }
+
+      // Create state checkpoint for rollback capability
+      function createStateCheckpoint(checkpointId) {
+        const currentState = haloTool.getState();
+        if (currentState._events) {
+          currentState._events.checkpoints[checkpointId] = {
+            id: checkpointId,
+            timestamp: new Date().toISOString(),
+            state: JSON.parse(JSON.stringify(currentState)) // Deep clone
+          };
+          currentState._events.currentCheckpoint = checkpointId;
+          haloTool.setState(currentState);
+          logToWorkflowOutput(`💾 Checkpoint created: ${checkpointId}`);
+        }
+      }
+
+      // Restore state from checkpoint
+      function restoreStateCheckpoint(checkpointId) {
+        const currentState = haloTool.getState();
+        if (currentState._events && currentState._events.checkpoints[checkpointId]) {
+          const checkpoint = currentState._events.checkpoints[checkpointId];
+          haloTool.setState(checkpoint.state);
+          logToWorkflowOutput(`🔄 State restored from checkpoint: ${checkpointId}`);
+          updateStateDisplay();
+          return true;
+        }
+        logToWorkflowOutput(`❌ Checkpoint not found: ${checkpointId}`);
+        return false;
+      }
+
+      // Widget dependency tracking and cascading updates
+      function updateFormValue(fieldName, value, triggerDependencies = true) {
+        const currentState = haloTool.getState();
+        const oldValue = currentState.form[fieldName]?.value;
+        
+        // Update the form field
+        if (!currentState.form[fieldName]) {
+          currentState.form[fieldName] = {
+            value: null,
+            errors: [],
+            touched: false,
+            valid: false
+          };
+        }
+        
+        currentState.form[fieldName].value = value;
+        currentState.form[fieldName].touched = true;
+        currentState.form[fieldName].valid = value !== null && value !== '';
+        
+        // Log the state change
+        logStateEvent('form-update', `form.${fieldName}.value`, value, oldValue);
+        
+        // Handle dependencies (like make → model)
+        if (triggerDependencies && currentState.form[fieldName].dependencies) {
+          const dependencies = currentState.form[fieldName].dependencies;
+          logToWorkflowOutput(`🔗 Triggering ${dependencies.length} dependent field(s): ${dependencies.join(', ')}`);
+          
+          dependencies.forEach(depField => {
+            // Clear dependent field values
+            if (currentState.form[depField]) {
+              currentState.form[depField].value = null;
+              currentState.form[depField].touched = false;
+              currentState.form[depField].valid = false;
+              logToWorkflowOutput(`🧹 Cleared dependent field: ${depField}`);
+            }
+            
+            // Clear dependent UI options
+            if (currentState.ui[depField]) {
+              currentState.ui[depField].options = [];
+              currentState.ui[depField].loading = false;
+              currentState.ui[depField].error = null;
+              logToWorkflowOutput(`🧹 Cleared UI options for: ${depField}`);
+            }
+          });
+        }
+        
+        // Update metadata
+        currentState._meta.lastUpdated = new Date().toISOString();
+        currentState._meta.performance.updateCount++;
+        
+        haloTool.setState(currentState);
+        updateStateDisplay();
+        
+        logToWorkflowOutput(`✅ Form field updated: ${fieldName} = ${JSON.stringify(value)}`);
+        
+        return currentState;
+      }
+
+      // Update UI options (like dropdown options from API calls)
+      function updateUIOptions(fieldName, options, loading = false, error = null) {
+        const currentState = haloTool.getState();
+        
+        if (!currentState.ui[fieldName]) {
+          currentState.ui[fieldName] = {
+            options: [],
+            loading: false,
+            error: null,
+            lastFetched: null
+          };
+        }
+        
+        const oldOptions = currentState.ui[fieldName].options;
+        currentState.ui[fieldName].options = options;
+        currentState.ui[fieldName].loading = loading;
+        currentState.ui[fieldName].error = error;
+        currentState.ui[fieldName].lastFetched = new Date().toISOString();
+        
+        // Log the state change
+        logStateEvent('ui-update', `ui.${fieldName}.options`, options, oldOptions);
+        
+        // Update metadata
+        currentState._meta.lastUpdated = new Date().toISOString();
+        
+        haloTool.setState(currentState);
+        updateStateDisplay();
+        
+        logToWorkflowOutput(`✅ UI options updated: ${fieldName} (${options.length} options)`);
+        
+        return currentState;
+      }
+
+      // Validate form state
+      function validateFormState() {
+        const currentState = haloTool.getState();
+        let isValid = true;
+        const errors = [];
+        
+        // Validate required fields
+        const requiredFields = ['make', 'model']; // Example required fields
+        
+        requiredFields.forEach(field => {
+          if (!currentState.form[field] || !currentState.form[field].value) {
+            isValid = false;
+            errors.push(`${field} is required`);
+            
+            if (currentState.form[field]) {
+              currentState.form[field].errors = [`${field} is required`];
+              currentState.form[field].valid = false;
+            }
+          }
+        });
+        
+        // Update validation state
+        currentState._meta.validation.isValid = isValid;
+        currentState._meta.validation.errors = errors;
+        currentState.ui.page.validationErrors = errors;
+        currentState.ui.page.canNavigate = isValid;
+        
+        haloTool.setState(currentState);
+        updateStateDisplay();
+        
+        logToWorkflowOutput(`🔍 Form validation: ${isValid ? 'VALID' : 'INVALID'} (${errors.length} errors)`);
+        
+        return { isValid, errors };
+      }
+
+      // Simulate lifecycle events for testing
+      function simulateLifecycleEvent(eventType) {
+        logToWorkflowOutput(`🎭 [${new Date().toLocaleTimeString()}] Simulating lifecycle event: ${eventType}`);
+        
+        const currentState = haloTool.getState();
+        
+        switch (eventType) {
+          case 'onTreeLaunch':
+            // Update session info
+            currentState.session.startedAt = new Date().toISOString();
+            currentState.context.workflow.currentStep = 1;
+            createStateCheckpoint('tree-launch');
+            break;
+            
+          case 'onPageEnter':
+            // Update page info
+            currentState.session.currentPage = `demo-page-${currentState.context.workflow.currentStep}`;
+            currentState.session.pageHistory.push(currentState.session.currentPage);
+            currentState.ui.page.loading = false;
+            break;
+            
+          case 'onPageExit':
+            // Validate before exit
+            const validation = validateFormState();
+            if (!validation.isValid) {
+              logToWorkflowOutput(`❌ Page exit blocked due to validation errors`);
+              return false;
+            }
+            currentState.context.workflow.completedSteps.push(currentState.context.workflow.currentStep);
+            break;
+            
+          case 'onTreeComplete':
+            // Finalize workflow
+            currentState.context.workflow.currentStep = currentState.context.workflow.totalSteps;
+            currentState.context.workflow.completedSteps = [1, 2, 3];
+            createStateCheckpoint('tree-complete');
+            break;
+        }
+        
+        // Update metadata
+        currentState._meta.lastUpdated = new Date().toISOString();
+        
+        haloTool.setState(currentState);
+        updateStateDisplay();
+        
+        // Execute registered tools for this trigger
+        if (triggerHandlers.has(eventType)) {
+          const toolIds = triggerHandlers.get(eventType);
+          logToWorkflowOutput(`⚡ Executing ${toolIds.length} tool(s) for ${eventType} trigger`);
+          
+          toolIds.forEach(async (toolId) => {
+            await executeRegisteredTool(toolId, eventType);
+          });
+        }
+        
+        return true;
+      }
+
       // NEW: Tool Management System
       const registeredTools = new Map();
       const triggerHandlers = new Map();
@@ -1912,8 +2351,17 @@ State will appear here...</pre
                     }
                   }
                 });
+                
+                // Update metadata
+                if (currentState._meta) {
+                  currentState._meta.lastUpdated = new Date().toISOString();
+                }
+                
                 haloTool.setState(currentState);
                 logToWorkflowOutput(`🔄 State updated with field mappings`);
+                
+                // Force update the state display
+                updateStateDisplay();
               }
 
             } catch (fetchError) {
@@ -2017,8 +2465,17 @@ State will appear here...</pre
                   const currentState = haloTool.getState();
                   const parsedValue = JSON.parse(value.trim());
                   setNestedValue(currentState, path.trim(), parsedValue);
+                  
+                  // Update metadata
+                  if (currentState._meta) {
+                    currentState._meta.lastUpdated = new Date().toISOString();
+                  }
+                  
                   haloTool.setState(currentState);
                   logToWorkflowOutput(`✅ State updated: ${path.trim()} = ${JSON.stringify(parsedValue)}`);
+                  
+                  // Force update the state display
+                  updateStateDisplay();
                 } else {
                   logToWorkflowOutput(`❌ Invalid state update format. Expected: 'path=value'`);
                 }
@@ -2178,6 +2635,11 @@ State will appear here...</pre
           }
 
           // Update the state with all changes
+          // Update metadata before setting state
+          if (currentState._meta) {
+            currentState._meta.lastUpdated = new Date().toISOString();
+          }
+          
           haloTool.setState(currentState);
 
           output.innerHTML = `
@@ -2212,6 +2674,7 @@ State will appear here...</pre
             console.log('🔄 Updating state display...');
             console.log('Current state after mappings:', currentState);
             updateStateDisplay();
+            logToWorkflowOutput(`🔄 State display updated with ${mappingResults.length} field mapping(s)`);
           }
         } catch (error) {
           output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
