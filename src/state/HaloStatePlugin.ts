@@ -546,13 +546,17 @@ export class HaloStatePlugin extends EventEmitter {
   ): void {
     if (!this.config.enableEventSourcing) return;
 
+    // Safely serialize values to avoid circular references
+    const safeNewValue = this.safeSerialize(newValue);
+    const safeOldValue = this.safeSerialize(oldValue);
+
     const event: StateEvent = {
       id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       type,
       timestamp: Date.now(),
       path,
-      newValue,
-      oldValue,
+      newValue: safeNewValue,
+      oldValue: safeOldValue,
       metadata: {
         triggeredBy: 'system',
         source: 'halo-state-plugin',
@@ -571,6 +575,42 @@ export class HaloStatePlugin extends EventEmitter {
     }
 
     this.emit('eventLogged', event);
+  }
+
+  private safeSerialize(value: unknown): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
+
+    // If it's a primitive, return as is
+    if (typeof value !== 'object') {
+      return value;
+    }
+
+    // Check if it's the state object itself or contains circular references
+    if (
+      value === this.state ||
+      (typeof value === 'object' && value !== null && '_events' in value)
+    ) {
+      return '[StateObject]';
+    }
+
+    // For arrays, recursively serialize each item
+    if (Array.isArray(value)) {
+      return value.map(item => this.safeSerialize(item));
+    }
+
+    // For objects, recursively serialize each property
+    try {
+      const result: Record<string, unknown> = {};
+      for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+        result[key] = this.safeSerialize(val);
+      }
+      return result;
+    } catch {
+      // If serialization fails, return a safe representation
+      return '[ComplexObject]';
+    }
   }
 
   // ========================= LIFECYCLE METHODS =========================
