@@ -380,12 +380,123 @@
 
           <!-- NEW: Response Actions Section -->
           <div class="input-group">
-            <label
-              >Response Actions
+            <label>
+              Response Actions
               <span style="color: #6c757d; font-size: 12px"
                 >(what to do after successful response)</span
-              >:</label
+              >
+              <button
+                type="button"
+                onclick="toggleResponseActionsHelp()"
+                style="
+                  background: #17a2b8;
+                  color: white;
+                  border: none;
+                  padding: 2px 8px;
+                  border-radius: 3px;
+                  font-size: 11px;
+                  margin-left: 8px;
+                  cursor: pointer;
+                "
+              >
+                ❓ Help
+              </button>
+            </label>
+
+            <!-- Help Panel (initially hidden) -->
+            <div
+              id="response-actions-help"
+              style="
+                display: none;
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 4px;
+                padding: 15px;
+                margin-bottom: 10px;
+                font-size: 13px;
+              "
             >
+              <h4 style="margin: 0 0 10px 0; color: #495057">📚 Available Response Actions</h4>
+
+              <div style="margin-bottom: 15px">
+                <strong>🔗 trigger-tool</strong> - Execute another tool
+                <div style="margin-left: 15px; color: #6c757d">
+                  <strong>Details:</strong> Tool name or ID to execute<br />
+                  <strong>Example:</strong> <code>Send Email Tool</code> or <code>tool_123</code>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 15px">
+                <strong>🖥️ client-action</strong> - Perform browser action
+                <div style="margin-left: 15px; color: #6c757d">
+                  <strong>Details:</strong> Action description<br />
+                  <strong>Example:</strong> <code>Show success notification</code>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 15px">
+                <strong>💾 state-update</strong> - Update application state
+                <div style="margin-left: 15px; color: #6c757d">
+                  <strong>Details:</strong> <code>path = value</code><br />
+                  <strong>Example:</strong> <code>user.status = "active"</code><br />
+                  <strong>Example:</strong> <code>notifications.count = 5</code>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 15px">
+                <strong>🔀 conditional</strong> - Conditional action
+                <div style="margin-left: 15px; color: #6c757d">
+                  <strong>Details:</strong> Condition and action<br />
+                  <strong>Example:</strong> <code>if success then showMessage</code>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 10px">
+                <strong>💡 Quick Examples:</strong>
+                <button
+                  onclick="addResponseActionExample('trigger-tool', 'Send Email Tool')"
+                  style="
+                    background: #28a745;
+                    color: white;
+                    border: none;
+                    padding: 2px 6px;
+                    border-radius: 2px;
+                    font-size: 10px;
+                    margin: 2px;
+                  "
+                >
+                  + Trigger Tool
+                </button>
+                <button
+                  onclick="addResponseActionExample('client-action', 'Show success message')"
+                  style="
+                    background: #6f42c1;
+                    color: white;
+                    border: none;
+                    padding: 2px 6px;
+                    border-radius: 2px;
+                    font-size: 10px;
+                    margin: 2px;
+                  "
+                >
+                  + Client Action
+                </button>
+                <button
+                  onclick="addResponseActionExample('state-update', 'user.lastLogin = new Date()')"
+                  style="
+                    background: #fd7e14;
+                    color: white;
+                    border: none;
+                    padding: 2px 6px;
+                    border-radius: 2px;
+                    font-size: 10px;
+                    margin: 2px;
+                  "
+                >
+                  + State Update
+                </button>
+              </div>
+            </div>
             <div id="response-actions-container">
               <div
                 class="response-action-row"
@@ -1622,14 +1733,14 @@ State will appear here...</pre
         newRow.style.cssText =
           'display: flex; gap: 8px; margin-bottom: 8px; align-items: center; background: #f8f9fa; padding: 8px; border-radius: 6px; border: 1px solid #e9ecef;';
         newRow.innerHTML = `
-                <select style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" class="action-type">
-                    <option value="">No Action</option>
+                <select style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" class="action-type" onchange="updateActionDetailsPlaceholder(this)">
+                    <option value="">Select Action Type</option>
                     <option value="trigger-tool">🔧 Trigger Another Tool</option>
                     <option value="client-action">🖥️ Client Action</option>
                     <option value="state-update">💾 State Update</option>
                     <option value="conditional">🔀 Conditional Action</option>
                 </select>
-                <input type="text" placeholder="Action details..." style="flex: 2; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="action-details">
+                <input type="text" placeholder="Select action type first..." style="flex: 2; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 12px;" class="action-details">
                 <button type="button" onclick="removeResponseAction(this)" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">×</button>
             `;
         container.appendChild(newRow);
@@ -2089,6 +2200,9 @@ State will appear here...</pre
 
           logToWorkflowOutput(`🔍 === END DEBUG ===`);
         }
+
+        // NEW: Response Actions Help System
+        // (Functions moved to global scope above)
 
         return true;
       }
@@ -2766,6 +2880,60 @@ State will appear here...</pre
           document.getElementById('auth-basic').style.display = 'block';
         } else if (authType === 'apiKey') {
           document.getElementById('auth-apikey').style.display = 'block';
+        }
+      }
+
+      // NEW: Response Actions Help System Functions (Global Scope)
+      function toggleResponseActionsHelp() {
+        const helpPanel = document.getElementById('response-actions-help');
+        if (helpPanel.style.display === 'none') {
+          helpPanel.style.display = 'block';
+          console.log('📚 Response Actions help opened');
+        } else {
+          helpPanel.style.display = 'none';
+        }
+      }
+
+      function addResponseActionExample(type, details) {
+        // Add a new response action with the example values
+        addResponseAction();
+
+        // Get the last added row and populate it
+        const container = document.getElementById('response-actions-container');
+        const rows = container.querySelectorAll('.response-action-row');
+        const lastRow = rows[rows.length - 1];
+
+        if (lastRow) {
+          const typeSelect = lastRow.querySelector('select');
+          const detailsInput = lastRow.querySelector('input');
+
+          if (typeSelect && detailsInput) {
+            typeSelect.value = type;
+            detailsInput.value = details;
+            updateActionDetailsPlaceholder(typeSelect); // Update placeholder
+            console.log(`✅ Added example response action: ${type} - ${details}`);
+          }
+        }
+      }
+
+      function updateActionDetailsPlaceholder(selectElement) {
+        const detailsInput = selectElement.parentElement.querySelector('.action-details');
+        if (!detailsInput) return;
+
+        const actionType = selectElement.value;
+        const placeholders = {
+          'trigger-tool': 'Enter tool name or ID (e.g., "Send Email Tool" or "tool_123")',
+          'client-action': 'Enter action description (e.g., "Show success notification")',
+          'state-update': 'Enter path = value (e.g., "user.status = active")',
+          conditional: 'Enter condition and action (e.g., "if success then showMessage")',
+          '': 'Select action type first...',
+        };
+
+        detailsInput.placeholder = placeholders[actionType] || 'Enter action details...';
+
+        // Clear the input when action type changes (except when setting examples)
+        if (actionType && !detailsInput.value) {
+          detailsInput.focus();
         }
       }
 
