@@ -244,7 +244,7 @@
         <div>
           <!-- NEW: Tool Name and Type at the top -->
           <div class="input-group">
-            <label>Tool Name:</label>
+            <label for="tool-name">Tool Name:</label>
             <input
               type="text"
               id="tool-name"
@@ -264,7 +264,7 @@
           </div>
 
           <div class="input-group">
-            <label>Tool Type:</label>
+            <label for="tool-type">Tool Type:</label>
             <select
               id="tool-type"
               title="Tool Type"
@@ -287,7 +287,7 @@
 
           <!-- URL and Method on same line -->
           <div class="input-group">
-            <label>Request:</label>
+            <label for="http-method">Request:</label>
             <div style="display: flex; gap: 8px; align-items: stretch">
               <select
                 id="http-method"
@@ -330,6 +330,7 @@
 
           <div class="input-group">
             <label
+              for="http-headers"
               >Headers <span style="color: #6c757d; font-size: 12px">(JSON format)</span>:</label
             >
             <textarea
@@ -346,6 +347,7 @@
 
           <div class="input-group">
             <label
+              for="http-body"
               >Request Body
               <span style="color: #6c757d; font-size: 12px">(JSON format)</span>:</label
             >
@@ -976,7 +978,7 @@
           </div>
 
           <div class="input-group">
-            <label>Active Triggers:</label>
+            <label for="active-triggers-list">Active Triggers:</label>
             <div
               id="active-triggers-list"
               style="
@@ -1004,7 +1006,7 @@
       <p>Simple API call methods for quick testing:</p>
 
       <div class="input-group">
-        <label>API URL:</label>
+        <label for="api-url">API URL:</label>
         <input
           type="text"
           id="api-url"
@@ -1037,11 +1039,11 @@
         <p>Manage application state:</p>
 
         <div class="input-group">
-          <label>State Path:</label>
+          <label for="state-path">State Path:</label>
           <input type="text" id="state-path" value="user.name" placeholder="e.g., user.name" />
         </div>
         <div class="input-group">
-          <label>State Value:</label>
+          <label for="state-value">State Value:</label>
           <input type="text" id="state-value" value="John Doe" placeholder="Enter value" />
         </div>
 
