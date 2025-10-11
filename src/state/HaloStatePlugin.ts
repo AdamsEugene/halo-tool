@@ -114,6 +114,21 @@ export interface HaloState {
     };
   };
   tools: {
+    // Tool Registry - Saved tool definitions
+    registry: Record<
+      string,
+      {
+        id: string;
+        name: string;
+        type: 'server' | 'client' | 'system';
+        trigger?: string;
+        config: Record<string, unknown>;
+        responseActions: Array<Record<string, unknown>>;
+        createdAt: string;
+        lastModified: string;
+      }
+    >;
+    // Runtime execution data
     lastRun: Record<string, unknown>;
     cache: Record<string, unknown>;
     errors: Record<string, unknown>;
@@ -613,6 +628,97 @@ export class HaloStatePlugin extends EventEmitter {
     }
   }
 
+  // ========================= TOOL MANAGEMENT =========================
+
+  public saveTool(toolConfig: {
+    id: string;
+    name: string;
+    type: 'server' | 'client' | 'system';
+    trigger?: string;
+    config: Record<string, unknown>;
+    responseActions?: Array<Record<string, unknown>>;
+  }): void {
+    const now = new Date().toISOString();
+    const tool = {
+      ...toolConfig,
+      responseActions: toolConfig.responseActions || [],
+      createdAt: now,
+      lastModified: now,
+    };
+
+    this.state.tools.registry[toolConfig.id] = tool;
+    this.updateMetadata();
+
+    this.logEvent('state-update', `tools.registry.${toolConfig.id}`, tool, undefined, {
+      triggeredBy: 'tool-management',
+      source: 'saveTool',
+    });
+
+    this.emit('toolSaved', tool);
+  }
+
+  public getTool(toolId: string): unknown {
+    return this.state.tools.registry[toolId];
+  }
+
+  public getAllTools(): Array<Record<string, unknown>> {
+    return Object.values(this.state.tools.registry);
+  }
+
+  public deleteTool(toolId: string): boolean {
+    if (!this.state.tools.registry[toolId]) {
+      return false;
+    }
+
+    const tool = this.state.tools.registry[toolId];
+    delete this.state.tools.registry[toolId];
+    this.updateMetadata();
+
+    this.logEvent('state-update', `tools.registry.${toolId}`, undefined, tool, {
+      triggeredBy: 'tool-management',
+      source: 'deleteTool',
+    });
+
+    this.emit('toolDeleted', toolId, tool);
+    return true;
+  }
+
+  public updateTool(toolId: string, updates: Partial<Record<string, unknown>>): boolean {
+    if (!this.state.tools.registry[toolId]) {
+      return false;
+    }
+
+    const oldTool = { ...this.state.tools.registry[toolId] };
+    this.state.tools.registry[toolId] = {
+      ...this.state.tools.registry[toolId],
+      ...updates,
+      lastModified: new Date().toISOString(),
+    };
+    this.updateMetadata();
+
+    this.logEvent(
+      'state-update',
+      `tools.registry.${toolId}`,
+      this.state.tools.registry[toolId],
+      oldTool,
+      {
+        triggeredBy: 'tool-management',
+        source: 'updateTool',
+      }
+    );
+
+    this.emit('toolUpdated', toolId, this.state.tools.registry[toolId], oldTool);
+    return true;
+  }
+
+  public getToolsByType(type: 'server' | 'client' | 'system'): Array<Record<string, unknown>> {
+    return Object.values(this.state.tools.registry).filter((tool: any) => tool.type === type);
+  }
+
+  public getToolsByTrigger(trigger: string): Array<Record<string, unknown>> {
+    return Object.values(this.state.tools.registry).filter((tool: any) => tool.trigger === trigger);
+  }
+
   // ========================= LIFECYCLE METHODS =========================
 
   public onTreeLaunch(): void {
@@ -717,6 +823,7 @@ export class HaloStatePlugin extends EventEmitter {
         };
       },
       tools: {
+        registry: {},
         lastRun: {},
         cache: {},
         errors: {},

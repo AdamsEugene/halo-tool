@@ -846,48 +846,48 @@
 
       <div class="grid">
         <div>
-           <div class="input-group">
-             <label>State Management Testing:</label>
-             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
-               <button
-                 class="btn"
-                 onclick="updateFormValue('make', 'Toyota')"
-                 style="background: #28a745; color: white; font-size: 12px; padding: 6px 12px;"
-               >
-                 🚗 Set Make: Toyota
-               </button>
-               <button
-                 class="btn"
-                 onclick="updateUIOptions('make', [{id: 'toyota', name: 'Toyota'}, {id: 'honda', name: 'Honda'}])"
-                 style="background: #17a2b8; color: white; font-size: 12px; padding: 6px 12px;"
-               >
-                 📋 Load Make Options
-               </button>
-               <button
-                 class="btn"
-                 onclick="validateFormState()"
-                 style="background: #ffc107; color: black; font-size: 12px; padding: 6px 12px;"
-               >
-                 ✅ Validate Form
-               </button>
-             </div>
-             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-               <button
-                 class="btn"
-                 onclick="createStateCheckpoint('demo-checkpoint')"
-                 style="background: #6f42c1; color: white; font-size: 12px; padding: 6px 12px;"
-               >
-                 💾 Create Checkpoint
-               </button>
-               <button
-                 class="btn"
-                 onclick="restoreStateCheckpoint('demo-checkpoint')"
-                 style="background: #fd7e14; color: white; font-size: 12px; padding: 6px 12px;"
-               >
-                 🔄 Restore Checkpoint
-               </button>
-             </div>
-           </div>
+          <div class="input-group">
+            <label>State Management Testing:</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px">
+              <button
+                class="btn"
+                onclick="updateFormValue('make', 'Toyota')"
+                style="background: #28a745; color: white; font-size: 12px; padding: 6px 12px"
+              >
+                🚗 Set Make: Toyota
+              </button>
+              <button
+                class="btn"
+                onclick="updateUIOptions('make', [{id: 'toyota', name: 'Toyota'}, {id: 'honda', name: 'Honda'}])"
+                style="background: #17a2b8; color: white; font-size: 12px; padding: 6px 12px"
+              >
+                📋 Load Make Options
+              </button>
+              <button
+                class="btn"
+                onclick="validateFormState()"
+                style="background: #ffc107; color: black; font-size: 12px; padding: 6px 12px"
+              >
+                ✅ Validate Form
+              </button>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <button
+                class="btn"
+                onclick="createStateCheckpoint('demo-checkpoint')"
+                style="background: #6f42c1; color: white; font-size: 12px; padding: 6px 12px"
+              >
+                💾 Create Checkpoint
+              </button>
+              <button
+                class="btn"
+                onclick="restoreStateCheckpoint('demo-checkpoint')"
+                style="background: #fd7e14; color: white; font-size: 12px; padding: 6px 12px"
+              >
+                🔄 Restore Checkpoint
+              </button>
+            </div>
+          </div>
 
           <div class="input-group">
             <label>Simulate Workflow Events:</label>
@@ -1111,7 +1111,7 @@ State will appear here...</pre
     <!-- Load haloTool -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="./dist/halo-tool.browser.js"></script>
-    
+
     <!-- Halo State Management Plugin -->
     <script src="./dist/state/halo-state-plugin.browser.js"></script>
     <script>
@@ -1145,7 +1145,7 @@ State will appear here...</pre
               enableDependencyTracking: true,
               debugMode: true,
               maxEventLogSize: 500,
-              maxCheckpoints: 5
+              maxCheckpoints: 5,
             });
 
             // Make state plugin globally accessible
@@ -1153,7 +1153,7 @@ State will appear here...</pre
 
             // Replace haloTool's state management with our plugin
             haloTool.getState = () => haloStatePlugin.getState();
-            haloTool.setState = (state) => haloStatePlugin.setState(state);
+            haloTool.setState = state => haloStatePlugin.setState(state);
 
             // Set up state plugin event listeners
             haloStatePlugin.on('stateChanged', (newState, oldState) => {
@@ -1166,11 +1166,35 @@ State will appear here...</pre
             });
 
             haloStatePlugin.on('dependentFieldCleared', (depField, parentField, parentValue) => {
-              console.log(`🔗 Dependent field cleared: ${depField} (parent: ${parentField})`, { parentValue });
+              console.log(`🔗 Dependent field cleared: ${depField} (parent: ${parentField})`, {
+                parentValue,
+              });
             });
 
             haloStatePlugin.on('fieldValidated', (fieldName, isValid, errors) => {
               console.log(`✅ Field validated: ${fieldName}`, { isValid, errors });
+            });
+
+            // NEW: Tool management event listeners
+            haloStatePlugin.on('toolSaved', tool => {
+              console.log('🔧 Tool saved:', tool);
+              updateRegisteredToolsList();
+              updateStateDisplay();
+              logToWorkflowOutput(`✅ Tool saved: ${tool.name} (${tool.type})`);
+            });
+
+            haloStatePlugin.on('toolDeleted', (toolId, tool) => {
+              console.log('🗑️ Tool deleted:', { toolId, tool });
+              updateRegisteredToolsList();
+              updateStateDisplay();
+              logToWorkflowOutput(`🗑️ Tool deleted: ${tool.name}`);
+            });
+
+            haloStatePlugin.on('toolUpdated', (toolId, newTool, oldTool) => {
+              console.log('📝 Tool updated:', { toolId, newTool, oldTool });
+              updateRegisteredToolsList();
+              updateStateDisplay();
+              logToWorkflowOutput(`📝 Tool updated: ${newTool.name}`);
             });
 
             // Set up dependencies based on Halo architecture
@@ -1180,13 +1204,31 @@ State will appear here...</pre
             haloStatePlugin.onTreeLaunch();
 
             logToWorkflowOutput('🚀 HaloTool initialized with Halo State Plugin');
-            logToWorkflowOutput(`📊 State structure: session, context, form, ui, tools, _events, _meta`);
+            logToWorkflowOutput(
+              `📊 State structure: session, context, form, ui, tools, _events, _meta`
+            );
             logToWorkflowOutput(`🔗 Widget dependencies: make → model (cascading updates)`);
-            logToWorkflowOutput(`🎯 Lifecycle triggers: onTreeLaunch, onPageEnter, onPageExit, onTreeComplete`);
-            logToWorkflowOutput(`🔍 Event sourcing enabled with ${haloStatePlugin.getEventLog().length} events`);
-            
+            logToWorkflowOutput(
+              `🎯 Lifecycle triggers: onTreeLaunch, onPageEnter, onPageExit, onTreeComplete`
+            );
+            logToWorkflowOutput(
+              `🔍 Event sourcing enabled with ${haloStatePlugin.getEventLog().length} events`
+            );
+            logToWorkflowOutput(
+              `🔧 Tool management: saveTool, deleteTool, getAllTools methods available`
+            );
+
             // Force update state display
             updateStateDisplay();
+
+            // Debug: Log state plugin methods
+            console.log(
+              '🔧 Available haloStatePlugin methods:',
+              Object.getOwnPropertyNames(Object.getPrototypeOf(haloStatePlugin))
+            );
+
+            // Test tool registry
+            console.log('🗂️ Current tools in registry:', haloStatePlugin.getAllTools());
 
             document.getElementById('init-status').innerHTML =
               '<span class="status ready">Ready</span>';
@@ -1634,17 +1676,17 @@ State will appear here...</pre
             oldValue: oldValue,
             metadata: {
               triggeredBy: 'tool-execution',
-              source: 'plugin-demo'
-            }
+              source: 'plugin-demo',
+            },
           };
-          
+
           currentState._events.log.push(event);
-          
+
           // Keep only last 100 events to prevent memory issues
           if (currentState._events.log.length > 100) {
             currentState._events.log = currentState._events.log.slice(-100);
           }
-          
+
           haloTool.setState(currentState);
           logToWorkflowOutput(`📝 Event logged: ${eventType} at ${path}`);
         }
@@ -1657,7 +1699,7 @@ State will appear here...</pre
           currentState._events.checkpoints[checkpointId] = {
             id: checkpointId,
             timestamp: new Date().toISOString(),
-            state: JSON.parse(JSON.stringify(currentState)) // Deep clone
+            state: JSON.parse(JSON.stringify(currentState)), // Deep clone
           };
           currentState._events.currentCheckpoint = checkpointId;
           haloTool.setState(currentState);
@@ -1683,29 +1725,31 @@ State will appear here...</pre
       function updateFormValue(fieldName, value, triggerDependencies = true) {
         const currentState = haloTool.getState();
         const oldValue = currentState.form[fieldName]?.value;
-        
+
         // Update the form field
         if (!currentState.form[fieldName]) {
           currentState.form[fieldName] = {
             value: null,
             errors: [],
             touched: false,
-            valid: false
+            valid: false,
           };
         }
-        
+
         currentState.form[fieldName].value = value;
         currentState.form[fieldName].touched = true;
         currentState.form[fieldName].valid = value !== null && value !== '';
-        
+
         // Log the state change
         logStateEvent('form-update', `form.${fieldName}.value`, value, oldValue);
-        
+
         // Handle dependencies (like make → model)
         if (triggerDependencies && currentState.form[fieldName].dependencies) {
           const dependencies = currentState.form[fieldName].dependencies;
-          logToWorkflowOutput(`🔗 Triggering ${dependencies.length} dependent field(s): ${dependencies.join(', ')}`);
-          
+          logToWorkflowOutput(
+            `🔗 Triggering ${dependencies.length} dependent field(s): ${dependencies.join(', ')}`
+          );
+
           dependencies.forEach(depField => {
             // Clear dependent field values
             if (currentState.form[depField]) {
@@ -1714,7 +1758,7 @@ State will appear here...</pre
               currentState.form[depField].valid = false;
               logToWorkflowOutput(`🧹 Cleared dependent field: ${depField}`);
             }
-            
+
             // Clear dependent UI options
             if (currentState.ui[depField]) {
               currentState.ui[depField].options = [];
@@ -1724,49 +1768,49 @@ State will appear here...</pre
             }
           });
         }
-        
+
         // Update metadata
         currentState._meta.lastUpdated = new Date().toISOString();
         currentState._meta.performance.updateCount++;
-        
+
         haloTool.setState(currentState);
         updateStateDisplay();
-        
+
         logToWorkflowOutput(`✅ Form field updated: ${fieldName} = ${JSON.stringify(value)}`);
-        
+
         return currentState;
       }
 
       // Update UI options (like dropdown options from API calls)
       function updateUIOptions(fieldName, options, loading = false, error = null) {
         const currentState = haloTool.getState();
-        
+
         if (!currentState.ui[fieldName]) {
           currentState.ui[fieldName] = {
             options: [],
             loading: false,
             error: null,
-            lastFetched: null
+            lastFetched: null,
           };
         }
-        
+
         const oldOptions = currentState.ui[fieldName].options;
         currentState.ui[fieldName].options = options;
         currentState.ui[fieldName].loading = loading;
         currentState.ui[fieldName].error = error;
         currentState.ui[fieldName].lastFetched = new Date().toISOString();
-        
+
         // Log the state change
         logStateEvent('ui-update', `ui.${fieldName}.options`, options, oldOptions);
-        
+
         // Update metadata
         currentState._meta.lastUpdated = new Date().toISOString();
-        
+
         haloTool.setState(currentState);
         updateStateDisplay();
-        
+
         logToWorkflowOutput(`✅ UI options updated: ${fieldName} (${options.length} options)`);
-        
+
         return currentState;
       }
 
@@ -1775,42 +1819,46 @@ State will appear here...</pre
         const currentState = haloTool.getState();
         let isValid = true;
         const errors = [];
-        
+
         // Validate required fields
         const requiredFields = ['make', 'model']; // Example required fields
-        
+
         requiredFields.forEach(field => {
           if (!currentState.form[field] || !currentState.form[field].value) {
             isValid = false;
             errors.push(`${field} is required`);
-            
+
             if (currentState.form[field]) {
               currentState.form[field].errors = [`${field} is required`];
               currentState.form[field].valid = false;
             }
           }
         });
-        
+
         // Update validation state
         currentState._meta.validation.isValid = isValid;
         currentState._meta.validation.errors = errors;
         currentState.ui.page.validationErrors = errors;
         currentState.ui.page.canNavigate = isValid;
-        
+
         haloTool.setState(currentState);
         updateStateDisplay();
-        
-        logToWorkflowOutput(`🔍 Form validation: ${isValid ? 'VALID' : 'INVALID'} (${errors.length} errors)`);
-        
+
+        logToWorkflowOutput(
+          `🔍 Form validation: ${isValid ? 'VALID' : 'INVALID'} (${errors.length} errors)`
+        );
+
         return { isValid, errors };
       }
 
       // Simulate lifecycle events for testing
       function simulateLifecycleEvent(eventType) {
-        logToWorkflowOutput(`🎭 [${new Date().toLocaleTimeString()}] Simulating lifecycle event: ${eventType}`);
-        
+        logToWorkflowOutput(
+          `🎭 [${new Date().toLocaleTimeString()}] Simulating lifecycle event: ${eventType}`
+        );
+
         const currentState = haloTool.getState();
-        
+
         switch (eventType) {
           case 'onTreeLaunch':
             // Update session info
@@ -1818,14 +1866,14 @@ State will appear here...</pre
             currentState.context.workflow.currentStep = 1;
             createStateCheckpoint('tree-launch');
             break;
-            
+
           case 'onPageEnter':
             // Update page info
             currentState.session.currentPage = `demo-page-${currentState.context.workflow.currentStep}`;
             currentState.session.pageHistory.push(currentState.session.currentPage);
             currentState.ui.page.loading = false;
             break;
-            
+
           case 'onPageExit':
             // Validate before exit
             const validation = validateFormState();
@@ -1833,9 +1881,11 @@ State will appear here...</pre
               logToWorkflowOutput(`❌ Page exit blocked due to validation errors`);
               return false;
             }
-            currentState.context.workflow.completedSteps.push(currentState.context.workflow.currentStep);
+            currentState.context.workflow.completedSteps.push(
+              currentState.context.workflow.currentStep
+            );
             break;
-            
+
           case 'onTreeComplete':
             // Finalize workflow
             currentState.context.workflow.currentStep = currentState.context.workflow.totalSteps;
@@ -1843,132 +1893,177 @@ State will appear here...</pre
             createStateCheckpoint('tree-complete');
             break;
         }
-        
+
         // Update metadata
         currentState._meta.lastUpdated = new Date().toISOString();
-        
+
         haloTool.setState(currentState);
         updateStateDisplay();
-        
+
         // Execute registered tools for this trigger
         if (triggerHandlers.has(eventType)) {
           const toolIds = triggerHandlers.get(eventType);
           logToWorkflowOutput(`⚡ Executing ${toolIds.length} tool(s) for ${eventType} trigger`);
-          
-          toolIds.forEach(async (toolId) => {
+
+          toolIds.forEach(async toolId => {
             await executeRegisteredTool(toolId, eventType);
           });
         }
-        
+
         // NEW: Enhanced State Management Functions following Halo Architecture
 
-      // Helper function to update form values using the state plugin
-      function updateFormValue(fieldName, value) {
-        if (window.haloStatePlugin) {
-          window.haloStatePlugin.updateFormField(fieldName, value, {
-            triggerValidation: true,
-            triggerDependencies: true,
-            metadata: { triggeredBy: 'demo-button', source: 'user-interaction' }
-          });
-          logToWorkflowOutput(`📝 Updated form field: ${fieldName} = ${JSON.stringify(value)}`);
-        }
-      }
-
-      // Helper function to update UI field options using the state plugin
-      function updateUIOptions(fieldName, options) {
-        if (window.haloStatePlugin) {
-          window.haloStatePlugin.updateUIField(fieldName, { 
-            options, 
-            loading: false, 
-            error: null 
-          }, {
-            triggeredBy: 'demo-button',
-            source: 'options-load'
-          });
-          logToWorkflowOutput(`📋 Updated UI options for ${fieldName}: ${options.length} options`);
-        }
-      }
-
-      // Helper function to validate form state
-      function validateFormState() {
-        if (window.haloStatePlugin) {
-          const validation = window.haloStatePlugin.validateForm();
-          logToWorkflowOutput(`✅ Form validation: ${validation.isValid ? 'VALID' : 'INVALID'}`);
-          if (validation.errors.length > 0) {
-            logToWorkflowOutput(`❌ Validation errors: ${validation.errors.join(', ')}`);
+        // Helper function to update form values using the state plugin
+        function updateFormValue(fieldName, value) {
+          if (window.haloStatePlugin) {
+            window.haloStatePlugin.updateFormField(fieldName, value, {
+              triggerValidation: true,
+              triggerDependencies: true,
+              metadata: { triggeredBy: 'demo-button', source: 'user-interaction' },
+            });
+            logToWorkflowOutput(`📝 Updated form field: ${fieldName} = ${JSON.stringify(value)}`);
           }
-          return validation.isValid;
         }
-        return false;
-      }
 
-      // Helper function to create a checkpoint
-      function createStateCheckpoint(id, description) {
-        if (window.haloStatePlugin) {
-          window.haloStatePlugin.createCheckpoint(id, description);
-          logToWorkflowOutput(`📸 Created checkpoint: ${id} - ${description}`);
+        // Helper function to update UI field options using the state plugin
+        function updateUIOptions(fieldName, options) {
+          if (window.haloStatePlugin) {
+            window.haloStatePlugin.updateUIField(
+              fieldName,
+              {
+                options,
+                loading: false,
+                error: null,
+              },
+              {
+                triggeredBy: 'demo-button',
+                source: 'options-load',
+              }
+            );
+            logToWorkflowOutput(
+              `📋 Updated UI options for ${fieldName}: ${options.length} options`
+            );
+          }
         }
-      }
 
-      // Helper function to restore a checkpoint
-      function restoreStateCheckpoint(id) {
-        if (window.haloStatePlugin) {
-          const success = window.haloStatePlugin.restoreCheckpoint(id);
-          if (success) {
-            logToWorkflowOutput(`🔄 Restored checkpoint: ${id}`);
+        // Helper function to validate form state
+        function validateFormState() {
+          if (window.haloStatePlugin) {
+            const validation = window.haloStatePlugin.validateForm();
+            logToWorkflowOutput(`✅ Form validation: ${validation.isValid ? 'VALID' : 'INVALID'}`);
+            if (validation.errors.length > 0) {
+              logToWorkflowOutput(`❌ Validation errors: ${validation.errors.join(', ')}`);
+            }
+            return validation.isValid;
+          }
+          return false;
+        }
+
+        // Helper function to create a checkpoint
+        function createStateCheckpoint(id, description) {
+          if (window.haloStatePlugin) {
+            window.haloStatePlugin.createCheckpoint(id, description);
+            logToWorkflowOutput(`📸 Created checkpoint: ${id} - ${description}`);
+          }
+        }
+
+        // Helper function to restore a checkpoint
+        function restoreStateCheckpoint(id) {
+          if (window.haloStatePlugin) {
+            const success = window.haloStatePlugin.restoreCheckpoint(id);
+            if (success) {
+              logToWorkflowOutput(`🔄 Restored checkpoint: ${id}`);
+            } else {
+              logToWorkflowOutput(`❌ Failed to restore checkpoint: ${id}`);
+            }
+            return success;
+          }
+          return false;
+        }
+
+        // Helper function to simulate widget dependency trigger
+        function simulateWidgetDependency() {
+          if (window.haloStatePlugin) {
+            // First update make field
+            updateFormValue('make', 'Toyota');
+
+            // Wait a bit then show the dependency effect
+            setTimeout(() => {
+              // Update UI with model options for Toyota
+              updateUIOptions('model', [
+                { id: 'camry', name: 'Camry' },
+                { id: 'corolla', name: 'Corolla' },
+                { id: 'prius', name: 'Prius' },
+                { id: 'rav4', name: 'RAV4' },
+              ]);
+              logToWorkflowOutput(`🔗 Dependency triggered: make → model options updated`);
+            }, 500);
+          }
+        }
+
+        // Helper function to demonstrate lifecycle events
+        function simulateLifecycleEvent(eventType) {
+          if (window.haloStatePlugin) {
+            switch (eventType) {
+              case 'onTreeLaunch':
+                window.haloStatePlugin.onTreeLaunch();
+                logToWorkflowOutput(`🚀 Lifecycle event: ${eventType}`);
+                break;
+              case 'onPageEnter':
+                window.haloStatePlugin.onPageEnter('demo-page-2');
+                logToWorkflowOutput(`📄 Lifecycle event: ${eventType} (demo-page-2)`);
+                break;
+              case 'onPageExit':
+                const canExit = window.haloStatePlugin.onPageExit();
+                logToWorkflowOutput(
+                  `🚪 Lifecycle event: ${eventType} - ${canExit ? 'ALLOWED' : 'BLOCKED'}`
+                );
+                break;
+              case 'onTreeComplete':
+                window.haloStatePlugin.onTreeComplete();
+                logToWorkflowOutput(`🎉 Lifecycle event: ${eventType}`);
+                break;
+            }
+          }
+        }
+
+        // NEW: Test function for tool saving
+        function testToolSaving() {
+          if (window.haloStatePlugin) {
+            const testTool = {
+              id: `test_tool_${Date.now()}`,
+              name: 'Test Tool',
+              type: 'server',
+              trigger: 'onTreeLaunch',
+              config: {
+                url: 'https://jsonplaceholder.typicode.com/posts/1',
+                method: 'GET',
+                headers: {},
+                body: null,
+                statePath: 'test.data',
+                fieldMappings: [],
+              },
+              responseActions: [],
+            };
+
+            logToWorkflowOutput(`🧪 Testing tool save with: ${testTool.name}`);
+            window.haloStatePlugin.saveTool(testTool);
+
+            // Verify it was saved
+            const savedTool = window.haloStatePlugin.getTool(testTool.id);
+            if (savedTool) {
+              logToWorkflowOutput(`✅ Tool save test successful! Tool ID: ${testTool.id}`);
+              logToWorkflowOutput(
+                `📊 Total tools in registry: ${window.haloStatePlugin.getAllTools().length}`
+              );
+            } else {
+              logToWorkflowOutput(`❌ Tool save test failed!`);
+            }
           } else {
-            logToWorkflowOutput(`❌ Failed to restore checkpoint: ${id}`);
-          }
-          return success;
-        }
-        return false;
-      }
-
-      // Helper function to simulate widget dependency trigger
-      function simulateWidgetDependency() {
-        if (window.haloStatePlugin) {
-          // First update make field
-          updateFormValue('make', 'Toyota');
-          
-          // Wait a bit then show the dependency effect
-          setTimeout(() => {
-            // Update UI with model options for Toyota
-            updateUIOptions('model', [
-              { id: 'camry', name: 'Camry' },
-              { id: 'corolla', name: 'Corolla' },
-              { id: 'prius', name: 'Prius' },
-              { id: 'rav4', name: 'RAV4' }
-            ]);
-            logToWorkflowOutput(`🔗 Dependency triggered: make → model options updated`);
-          }, 500);
-        }
-      }
-
-      // Helper function to demonstrate lifecycle events
-      function simulateLifecycleEvent(eventType) {
-        if (window.haloStatePlugin) {
-          switch (eventType) {
-            case 'onTreeLaunch':
-              window.haloStatePlugin.onTreeLaunch();
-              logToWorkflowOutput(`🚀 Lifecycle event: ${eventType}`);
-              break;
-            case 'onPageEnter':
-              window.haloStatePlugin.onPageEnter('demo-page-2');
-              logToWorkflowOutput(`📄 Lifecycle event: ${eventType} (demo-page-2)`);
-              break;
-            case 'onPageExit':
-              const canExit = window.haloStatePlugin.onPageExit();
-              logToWorkflowOutput(`🚪 Lifecycle event: ${eventType} - ${canExit ? 'ALLOWED' : 'BLOCKED'}`);
-              break;
-            case 'onTreeComplete':
-              window.haloStatePlugin.onTreeComplete();
-              logToWorkflowOutput(`🎉 Lifecycle event: ${eventType}`);
-              break;
+            logToWorkflowOutput(`❌ haloStatePlugin not available for testing`);
           }
         }
-      }
 
-      return true;
+        return true;
       }
 
       // NEW: Tool Management System
@@ -2001,7 +2096,6 @@ State will appear here...</pre
           name: toolName,
           type: toolType,
           trigger: lifecycleTrigger,
-          responseActions: responseActions,
           config: {
             url: url,
             method: method,
@@ -2010,11 +2104,25 @@ State will appear here...</pre
             statePath: statePath,
             fieldMappings: fieldMappings,
           },
-          createdAt: new Date().toISOString(),
+          responseActions: responseActions,
         };
 
-        // Register the tool
-        registeredTools.set(toolId, toolConfig);
+        // Save tool to state using haloStatePlugin
+        if (window.haloStatePlugin) {
+          window.haloStatePlugin.saveTool(toolConfig);
+          logToWorkflowOutput(
+            `✅ Tool '${toolName}' (${toolType}) saved to state with ID: ${toolId}`
+          );
+        } else {
+          // Fallback to local storage for compatibility
+          registeredTools.set(toolId, {
+            ...toolConfig,
+            createdAt: new Date().toISOString(),
+          });
+          logToWorkflowOutput(
+            `✅ Tool '${toolName}' (${toolType}) created locally with ID: ${toolId}`
+          );
+        }
 
         // Register trigger handler if specified
         if (lifecycleTrigger) {
@@ -2028,10 +2136,6 @@ State will appear here...</pre
         updateRegisteredToolsList();
         updateActiveTriggersList();
 
-        // Log success
-        logToWorkflowOutput(
-          `✅ Tool '${toolName}' (${toolType}) created successfully with ID: ${toolId}`
-        );
         if (lifecycleTrigger) {
           logToWorkflowOutput(`🔗 Tool registered for trigger: ${lifecycleTrigger}`);
         }
@@ -2096,20 +2200,33 @@ State will appear here...</pre
       function updateRegisteredToolsList() {
         const container = document.getElementById('registered-tools-list');
 
-        if (registeredTools.size === 0) {
+        // Get tools from state plugin first, fallback to local storage
+        let tools = [];
+        let toolsMap = new Map();
+
+        if (window.haloStatePlugin) {
+          tools = window.haloStatePlugin.getAllTools();
+          // Convert to Map for compatibility with existing code
+          tools.forEach(tool => toolsMap.set(tool.id, tool));
+        } else {
+          tools = Array.from(registeredTools.values());
+          toolsMap = registeredTools;
+        }
+
+        if (toolsMap.size === 0) {
           container.innerHTML =
             '<div style="text-align: center; color: #6c757d; padding: 20px; font-style: italic;">No tools saved yet<br><small>Configure an HTTP request above and click "💾 Save as New Tool"</small></div>';
           return;
         }
 
         let html = '';
-        registeredTools.forEach((tool, toolId) => {
+        toolsMap.forEach((tool, toolId) => {
           const typeIcon = tool.type === 'server' ? '🌐' : tool.type === 'client' ? '🖥️' : '⚙️';
           const triggerBadge = tool.trigger
             ? `<span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.trigger}</span>`
             : '';
           const actionsBadge =
-            tool.responseActions.length > 0
+            tool.responseActions && tool.responseActions.length > 0
               ? `<span style="background: #fff3e0; color: #f57c00; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 4px;">${tool.responseActions.length} actions</span>`
               : '';
 
@@ -2159,11 +2276,27 @@ State will appear here...</pre
 
       // NEW: Delete a specific tool
       function deleteRegisteredTool(toolId) {
-        const tool = registeredTools.get(toolId);
-        if (!tool) return;
+        let tool;
 
-        // Remove from registered tools
-        registeredTools.delete(toolId);
+        // Delete from state plugin first, fallback to local storage
+        if (window.haloStatePlugin) {
+          tool = window.haloStatePlugin.getTool(toolId);
+          if (tool) {
+            window.haloStatePlugin.deleteTool(toolId);
+            logToWorkflowOutput(`🗑️ Deleted tool from state: ${tool.name}`);
+          }
+        } else {
+          tool = registeredTools.get(toolId);
+          if (tool) {
+            registeredTools.delete(toolId);
+            logToWorkflowOutput(`🗑️ Deleted tool locally: ${tool.name}`);
+          }
+        }
+
+        if (!tool) {
+          logToWorkflowOutput(`⚠️ Tool not found: ${toolId}`);
+          return;
+        }
 
         // Remove from trigger handlers
         if (tool.trigger) {
@@ -2181,7 +2314,6 @@ State will appear here...</pre
 
         updateRegisteredToolsList();
         updateActiveTriggersList();
-        logToWorkflowOutput(`🗑️ Deleted tool: ${tool.name}`);
       }
 
       // NEW: Load a tool's configuration back to the form
@@ -2287,7 +2419,9 @@ State will appear here...</pre
         }
 
         const startTime = Date.now();
-        logToWorkflowOutput(`🚀 [${new Date().toLocaleTimeString()}] Starting execution of ${tool.type} tool: "${tool.name}" (triggered by: ${triggeredBy})`);
+        logToWorkflowOutput(
+          `🚀 [${new Date().toLocaleTimeString()}] Starting execution of ${tool.type} tool: "${tool.name}" (triggered by: ${triggeredBy})`
+        );
 
         try {
           let result;
@@ -2317,45 +2451,58 @@ State will appear here...</pre
                 method: tool.config.method,
                 headers: tool.config.headers,
                 body: tool.config.body,
-                signal: controller.signal
+                signal: controller.signal,
               };
 
               result = await haloTool.request(tool.config.url, options, tool.config.statePath);
               clearTimeout(timeoutId);
 
               logToWorkflowOutput(`📡 Response received - Success: ${result.success}`);
-              logToWorkflowOutput(`📄 Response data: ${JSON.stringify(result.data, null, 2).substring(0, 500)}${JSON.stringify(result.data, null, 2).length > 500 ? '...' : ''}`);
+              logToWorkflowOutput(
+                `📄 Response data: ${JSON.stringify(result.data, null, 2).substring(0, 500)}${JSON.stringify(result.data, null, 2).length > 500 ? '...' : ''}`
+              );
 
               // Process field mappings
-              if (result.success && tool.config.fieldMappings && tool.config.fieldMappings.length > 0) {
-                logToWorkflowOutput(`🔄 Processing ${tool.config.fieldMappings.length} field mapping(s)...`);
-                
+              if (
+                result.success &&
+                tool.config.fieldMappings &&
+                tool.config.fieldMappings.length > 0
+              ) {
+                logToWorkflowOutput(
+                  `🔄 Processing ${tool.config.fieldMappings.length} field mapping(s)...`
+                );
+
                 const currentState = haloTool.getState();
                 tool.config.fieldMappings.forEach((mapping, index) => {
                   if (mapping.from && mapping.to) {
-                    logToWorkflowOutput(`🔍 [Mapping ${index + 1}] Extracting from: ${mapping.from}`);
+                    logToWorkflowOutput(
+                      `🔍 [Mapping ${index + 1}] Extracting from: ${mapping.from}`
+                    );
                     const value = extractValue(result.data, mapping.from);
                     if (value !== undefined) {
                       setNestedValue(currentState, mapping.to, value);
-                      logToWorkflowOutput(`✅ [Mapping ${index + 1}] Mapped ${mapping.from} → ${mapping.to}: ${JSON.stringify(value)}`);
+                      logToWorkflowOutput(
+                        `✅ [Mapping ${index + 1}] Mapped ${mapping.from} → ${mapping.to}: ${JSON.stringify(value)}`
+                      );
                     } else {
-                      logToWorkflowOutput(`❌ [Mapping ${index + 1}] Could not extract value from path: ${mapping.from}`);
+                      logToWorkflowOutput(
+                        `❌ [Mapping ${index + 1}] Could not extract value from path: ${mapping.from}`
+                      );
                     }
                   }
                 });
-                
+
                 // Update metadata
                 if (currentState._meta) {
                   currentState._meta.lastUpdated = new Date().toISOString();
                 }
-                
+
                 haloTool.setState(currentState);
                 logToWorkflowOutput(`🔄 State updated with field mappings`);
-                
+
                 // Force update the state display
                 updateStateDisplay();
               }
-
             } catch (fetchError) {
               clearTimeout(timeoutId);
               if (fetchError.name === 'AbortError') {
@@ -2364,7 +2511,6 @@ State will appear here...</pre
                 throw fetchError;
               }
             }
-
           } else if (tool.type === 'client') {
             // Execute client action
             logToWorkflowOutput(`🖥️ Executing client action...`);
@@ -2374,7 +2520,6 @@ State will appear here...</pre
               action: 'client',
             };
             logToWorkflowOutput(`🖥️ Client tool executed: ${tool.name}`);
-            
           } else if (tool.type === 'system') {
             // Execute system operation
             logToWorkflowOutput(`⚙️ Executing system operation...`);
@@ -2387,23 +2532,30 @@ State will appear here...</pre
           }
 
           const duration = Date.now() - startTime;
-          logToWorkflowOutput(`✅ [${new Date().toLocaleTimeString()}] Tool '${tool.name}' completed successfully in ${duration}ms`);
+          logToWorkflowOutput(
+            `✅ [${new Date().toLocaleTimeString()}] Tool '${tool.name}' completed successfully in ${duration}ms`
+          );
 
           // Process response actions
           if (result.success && tool.responseActions && tool.responseActions.length > 0) {
-            logToWorkflowOutput(`⚡ Processing ${tool.responseActions.length} response action(s)...`);
+            logToWorkflowOutput(
+              `⚡ Processing ${tool.responseActions.length} response action(s)...`
+            );
 
             for (let i = 0; i < tool.responseActions.length; i++) {
               const action = tool.responseActions[i];
-              logToWorkflowOutput(`🎯 [Action ${i + 1}] Executing: ${action.type} - ${JSON.stringify(action.details)}`);
+              logToWorkflowOutput(
+                `🎯 [Action ${i + 1}] Executing: ${action.type} - ${JSON.stringify(action.details)}`
+              );
               await executeResponseAction(action, result, tool);
               logToWorkflowOutput(`✅ [Action ${i + 1}] Completed`);
             }
           }
-
         } catch (error) {
           const duration = Date.now() - startTime;
-          logToWorkflowOutput(`💥 [${new Date().toLocaleTimeString()}] Tool '${tool.name}' failed after ${duration}ms: ${error.message}`);
+          logToWorkflowOutput(
+            `💥 [${new Date().toLocaleTimeString()}] Tool '${tool.name}' failed after ${duration}ms: ${error.message}`
+          );
           logToWorkflowOutput(`🔍 Error details: ${error.stack || 'No stack trace available'}`);
           console.error('Tool execution error:', error);
         }
@@ -2415,12 +2567,16 @@ State will appear here...</pre
 
       async function executeResponseAction(action, toolResult, parentTool) {
         if (executionDepth >= MAX_EXECUTION_DEPTH) {
-          logToWorkflowOutput(`🛑 Maximum execution depth (${MAX_EXECUTION_DEPTH}) reached. Preventing infinite loop.`);
+          logToWorkflowOutput(
+            `🛑 Maximum execution depth (${MAX_EXECUTION_DEPTH}) reached. Preventing infinite loop.`
+          );
           return;
         }
 
         executionDepth++;
-        logToWorkflowOutput(`⚡ [Depth ${executionDepth}] Executing response action: ${action.type} - ${JSON.stringify(action.details)}`);
+        logToWorkflowOutput(
+          `⚡ [Depth ${executionDepth}] Executing response action: ${action.type} - ${JSON.stringify(action.details)}`
+        );
 
         try {
           switch (action.type) {
@@ -2428,17 +2584,24 @@ State will appear here...</pre
               // Find and execute another tool
               const targetToolId = action.details;
               logToWorkflowOutput(`🔍 Looking for tool: ${targetToolId}`);
-              
+
               const targetTool = Array.from(registeredTools.values()).find(
                 t => t.name === targetToolId || t.id === targetToolId
               );
-              
+
               if (targetTool) {
                 logToWorkflowOutput(`🔗 Triggering tool: ${targetTool.name} (${targetTool.id})`);
-                await executeRegisteredTool(targetTool.id, `response-action-from-${parentTool.name}`);
+                await executeRegisteredTool(
+                  targetTool.id,
+                  `response-action-from-${parentTool.name}`
+                );
               } else {
                 logToWorkflowOutput(`⚠️ Target tool '${targetToolId}' not found`);
-                logToWorkflowOutput(`📋 Available tools: ${Array.from(registeredTools.values()).map(t => t.name).join(', ')}`);
+                logToWorkflowOutput(
+                  `📋 Available tools: ${Array.from(registeredTools.values())
+                    .map(t => t.name)
+                    .join(', ')}`
+                );
               }
               break;
 
@@ -2457,15 +2620,17 @@ State will appear here...</pre
                   const currentState = haloTool.getState();
                   const parsedValue = JSON.parse(value.trim());
                   setNestedValue(currentState, path.trim(), parsedValue);
-                  
+
                   // Update metadata
                   if (currentState._meta) {
                     currentState._meta.lastUpdated = new Date().toISOString();
                   }
-                  
+
                   haloTool.setState(currentState);
-                  logToWorkflowOutput(`✅ State updated: ${path.trim()} = ${JSON.stringify(parsedValue)}`);
-                  
+                  logToWorkflowOutput(
+                    `✅ State updated: ${path.trim()} = ${JSON.stringify(parsedValue)}`
+                  );
+
                   // Force update the state display
                   updateStateDisplay();
                 } else {
@@ -2492,7 +2657,9 @@ State will appear here...</pre
           console.error('Response action error:', error);
         } finally {
           executionDepth--;
-          logToWorkflowOutput(`⬅️ [Depth ${executionDepth + 1}] Response action completed: ${action.type}`);
+          logToWorkflowOutput(
+            `⬅️ [Depth ${executionDepth + 1}] Response action completed: ${action.type}`
+          );
         }
       }
 
@@ -2631,7 +2798,7 @@ State will appear here...</pre
           if (currentState._meta) {
             currentState._meta.lastUpdated = new Date().toISOString();
           }
-          
+
           haloTool.setState(currentState);
 
           output.innerHTML = `
@@ -2666,7 +2833,9 @@ State will appear here...</pre
             console.log('🔄 Updating state display...');
             console.log('Current state after mappings:', currentState);
             updateStateDisplay();
-            logToWorkflowOutput(`🔄 State display updated with ${mappingResults.length} field mapping(s)`);
+            logToWorkflowOutput(
+              `🔄 State display updated with ${mappingResults.length} field mapping(s)`
+            );
           }
         } catch (error) {
           output.innerHTML = `<div style="color: #e74c3c;">❌ Error: ${error.message}</div>`;
