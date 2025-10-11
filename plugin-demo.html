@@ -329,8 +329,7 @@
           </div>
 
           <div class="input-group">
-            <label
-              for="http-headers"
+            <label for="http-headers"
               >Headers <span style="color: #6c757d; font-size: 12px">(JSON format)</span>:</label
             >
             <textarea
@@ -346,8 +345,7 @@
           </div>
 
           <div class="input-group">
-            <label
-              for="http-body"
+            <label for="http-body"
               >Request Body
               <span style="color: #6c757d; font-size: 12px">(JSON format)</span>:</label
             >
@@ -2065,6 +2063,33 @@ State will appear here...</pre
           }
         }
 
+        // NEW: Debug function to check tool storage
+        function debugToolStorage() {
+          logToWorkflowOutput(`🔍 === TOOL STORAGE DEBUG ===`);
+
+          if (window.haloStatePlugin) {
+            const stateTools = window.haloStatePlugin.getAllTools();
+            logToWorkflowOutput(`📊 State Plugin Tools: ${stateTools.length}`);
+            stateTools.forEach((tool, index) => {
+              logToWorkflowOutput(
+                `  ${index + 1}. ID: ${tool.id} | Name: ${tool.name} | Type: ${tool.type}`
+              );
+            });
+          } else {
+            logToWorkflowOutput(`❌ State plugin not available`);
+          }
+
+          const localTools = Array.from(registeredTools.values());
+          logToWorkflowOutput(`📊 Local Storage Tools: ${localTools.length}`);
+          localTools.forEach((tool, index) => {
+            logToWorkflowOutput(
+              `  ${index + 1}. ID: ${tool.id} | Name: ${tool.name} | Type: ${tool.type}`
+            );
+          });
+
+          logToWorkflowOutput(`🔍 === END DEBUG ===`);
+        }
+
         return true;
       }
 
@@ -2414,9 +2439,37 @@ State will appear here...</pre
       }
 
       async function executeRegisteredTool(toolId, triggeredBy = 'manual') {
-        const tool = registeredTools.get(toolId);
+        // Check state plugin first, then fallback to local registeredTools Map
+        let tool;
+        if (window.haloStatePlugin) {
+          tool = window.haloStatePlugin.getTool(toolId);
+          if (tool) {
+            logToWorkflowOutput(`🔍 Found tool in state plugin: ${tool.name}`);
+          }
+        }
+
+        // Fallback to local storage if not found in state plugin
         if (!tool) {
-          logToWorkflowOutput(`❌ Tool ${toolId} not found`);
+          tool = registeredTools.get(toolId);
+          if (tool) {
+            logToWorkflowOutput(`🔍 Found tool in local storage: ${tool.name}`);
+          }
+        }
+
+        if (!tool) {
+          logToWorkflowOutput(`❌ Tool ${toolId} not found in state plugin or local storage`);
+
+          // Debug: List available tools
+          if (window.haloStatePlugin) {
+            const stateTool = window.haloStatePlugin.getAllTools();
+            logToWorkflowOutput(
+              `🔍 Available tools in state: ${stateTool.map(t => t.name || t.id).join(', ')}`
+            );
+          }
+          const localTools = Array.from(registeredTools.values());
+          logToWorkflowOutput(
+            `🔍 Available tools locally: ${localTools.map(t => t.name || t.id).join(', ')}`
+          );
           return;
         }
 
@@ -2587,9 +2640,23 @@ State will appear here...</pre
               const targetToolId = action.details;
               logToWorkflowOutput(`🔍 Looking for tool: ${targetToolId}`);
 
-              const targetTool = Array.from(registeredTools.values()).find(
-                t => t.name === targetToolId || t.id === targetToolId
-              );
+              // Check state plugin first, then fallback to local storage
+              let targetTool;
+              if (window.haloStatePlugin) {
+                // Try to find by ID first, then by name
+                targetTool = window.haloStatePlugin.getTool(targetToolId);
+                if (!targetTool) {
+                  const allStateTools = window.haloStatePlugin.getAllTools();
+                  targetTool = allStateTools.find(t => t.name === targetToolId);
+                }
+              }
+
+              // Fallback to local storage
+              if (!targetTool) {
+                targetTool = Array.from(registeredTools.values()).find(
+                  t => t.name === targetToolId || t.id === targetToolId
+                );
+              }
 
               if (targetTool) {
                 logToWorkflowOutput(`🔗 Triggering tool: ${targetTool.name} (${targetTool.id})`);
@@ -2599,10 +2666,17 @@ State will appear here...</pre
                 );
               } else {
                 logToWorkflowOutput(`⚠️ Target tool '${targetToolId}' not found`);
+
+                // Debug: List available tools
+                if (window.haloStatePlugin) {
+                  const stateTools = window.haloStatePlugin.getAllTools();
+                  logToWorkflowOutput(
+                    `📋 Available tools in state: ${stateTools.map(t => t.name).join(', ')}`
+                  );
+                }
+                const localTools = Array.from(registeredTools.values());
                 logToWorkflowOutput(
-                  `📋 Available tools: ${Array.from(registeredTools.values())
-                    .map(t => t.name)
-                    .join(', ')}`
+                  `📋 Available tools locally: ${localTools.map(t => t.name).join(', ')}`
                 );
               }
               break;
